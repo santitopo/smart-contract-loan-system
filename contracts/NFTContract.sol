@@ -34,8 +34,8 @@ contract NFTContract is Owneable {
     }
 
     // Se podrían usar signed int no? Aunque si tenemos que respetar las firmas afecta.
-    function balanceOf(address _owner) external view returns (uint256) {
-        return balances[_owner];
+    function balanceOf(address _address) external view returns (uint256) {
+        return balances[_address];
     }
 
     function ownerOf(uint256 _tokenId) external view returns (address) {
@@ -59,7 +59,7 @@ contract NFTContract is Owneable {
         mintPrice = _price;
     }
 
-    function getPrince() external view returns(uint256) {
+    function getPrice() external view returns(uint256) {
         return mintPrice;
     }
 
