@@ -2,8 +2,9 @@
 pragma solidity 0.8.14;
 
 import "./Owneable.sol";
+import "./ERC721.sol";
 
-contract NFTContract is Owneable {
+contract NFTContract is Owneable, ERC721 {
     uint256 public identifier = 1;
     string public name;
     string public symbol;
@@ -30,7 +31,9 @@ contract NFTContract is Owneable {
     }
 
     function tokenURI(uint256 _tokenId) external view returns (string memory uri) {
-
+        NFTMetaData memory token = nfts[_tokenId];
+        require(token.tokenId != 0, "Token does not exist");
+        return token.imageURI;
     }
 
     // Se podrían usar signed int no? Aunque si tenemos que respetar las firmas afecta.
@@ -39,7 +42,9 @@ contract NFTContract is Owneable {
     }
 
     function ownerOf(uint256 _tokenId) external view returns (address) {
-        return owners[_tokenId];
+        address owner = owners[_tokenId];
+        require(owner != address(0), "Token does not exist");
+        return owner;
     }
 
     function safeTransfer(address _to, uint256 _tokenId) external {
@@ -63,7 +68,9 @@ contract NFTContract is Owneable {
         return mintPrice;
     }
 
-    function getMetadata(uint256 _token_id) external view returns(string memory _name, string memory _description, string memory _imageURI, uint256 _mintDate) {
-
+    function getMetadata(uint256 _tokenId) external view returns(string memory, string memory, string memory, uint256) {
+        NFTMetaData memory token = nfts[_tokenId];
+        require(token.tokenId != 0, "Token does not exist");
+        return (token.name, token.description, token.imageURI, token.mintDate);
     }
 }

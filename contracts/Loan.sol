@@ -20,7 +20,7 @@ contract LoanContract is Owneable {
         uint256 totalAmount;
     }
 
-    enum LoanStatus{ Pending, Approved, Rejected, Paid }
+    enum LoanStatus { Pending, Approved, Rejected, Paid }
 
     constructor() payable {
         owner = msg.sender;
@@ -76,6 +76,10 @@ contract LoanContract is Owneable {
     }
 
     function withdraw(uint256 _amount) external {
+
+    }
+
+    fallback() external payable {
 
     }
 }
