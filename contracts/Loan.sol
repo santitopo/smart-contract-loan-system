@@ -2,9 +2,10 @@
 pragma solidity 0.8.14;
 
 import "./Owneable.sol";
+import "./ERC721Receiver.sol";
 
 // Podemos llamarle así al contrato asi podemos tener la entidad Loan?
-contract LoanContract is Owneable {
+contract LoanContract is Owneable, ERC721Receiver {
     uint256 public identifier = 1;
     uint256 public loanAmount;
     uint256 public maxTimeInSeconds;
@@ -79,7 +80,7 @@ contract LoanContract is Owneable {
 
     }
 
-    fallback() external payable {
+    receive() external payable {
 
     }
 }
