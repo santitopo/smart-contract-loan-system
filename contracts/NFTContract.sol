@@ -95,6 +95,10 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         return (token.name, token.description, token.imageURI, token.mintDate);
     }
 
+    function getBalance() external view returns(uint256) {
+        return address(this).balance;
+    }
+
     // From openzeppelin implementation
     function _checkOnERC721Received(
         address _to,
