@@ -11,12 +11,12 @@ contract LoanContract is Owneable, ERC721Receiver {
     address public nftContract;     // El contrato que maneja los tokens
     uint256 public interestPercentage;
     mapping (uint256 => Loan) public loans;
-    mapping (address => uint256) public loanByAddress; // Punteros a los últimos loans de cada address 
+    mapping (address => uint256) public loanByAddress; // Punteros al último de cada address 
 
     struct Loan {
         uint256 tokenId;
         address requester;
-        // Que sería "balance del deudor"?
+        // Que sería "balance del deudor"? --> cuanto a pagado hasta el momento
         uint256 currentDebt;
         uint256 dueDate;
         uint256 loanAmount;
