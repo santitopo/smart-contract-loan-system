@@ -6,38 +6,31 @@ import "./ERC721Receiver.sol";
 
 // Podemos llamarle así al contrato asi podemos tener la entidad Loan?
 contract LoanContract is Owneable, ERC721Receiver {
-    uint256 public identifier = 1;
+    uint256 public loanCounter = 1;
     uint256 public loanAmount;
-    address public nftContact;
-    mapping(uint256 => Loan) public loans;
+    address public nftContract;     // El contrato que maneja los tokens
+    uint256 public interestPercentage;
+    mapping (uint256 => Loan) public loans;
+    mapping (address => uint256) public loanByAddress; // Punteros a los últimos loans de cada address 
 
     struct Loan {
-        // Como nos aseguramos que el NFT haya sido transferido antes de actualizar?
         uint256 tokenId;
         address requester;
         // Que sería "balance del deudor"?
         uint256 currentDebt;
         uint256 dueDate;
         uint256 loanAmount;
-        uint256 interestPercentage;
         LoanStatus status;
     }
 
     enum LoanStatus { Pending, Approved, Rejected, Paid }
 
-    constructor(address _nftContact) payable {
+    constructor(address _nftContract) payable {
         owner = msg.sender;
-        nftContact = _nftContact;
+        nftContract = _nftContract;
     }
 
     function requestLoan(uint256 token_id) external {
-        //Posible flujo
-
-        // Paso 1: Validar contra el nftContract que el msg.sender sea el dueño de ese NFT
-        //          y si lo es, crear el Loan en estado Pending.
-        // Paso 2: El owner agrega el interés, monto prestado, y fecha de vencimiento al loan.
-        // Paso 3: Si el usuario quiere aceptar el loan, puede hacerlo transfiriéndo el NFT a la address de el LoanContract 
-        // Paso 4: El owner luego aprueba entonces el préstamo con un método approveLoan(id) y se le transfiere el dinero a la address que lo solicitó
     }
 
     //Debería de recibir el id del loan para setear el amount
@@ -45,24 +38,21 @@ contract LoanContract is Owneable, ERC721Receiver {
         loanAmount = _loanAmount;
     }
 
-    //No recibe id porque asume que es el único Loan que tiene disponible esta address
     function getLoanStatus() external view returns(string memory) {
-
     }
 
-    //No recibe id porque asume que es el único Loan que tiene disponible esta address
     function withdrawLoanAmount() external {
 
     }
 
-    // No debería recibir tokenId para saber cual quiere retirar?
-    function withdrawNFT() external {
-
+    function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
+    
+    // Si recibe uint256 loanId implica que puede haber un loan Paid, sin haber sido retirado su token. (Cambiar el nombre del mapping por activeLoanByAddress)
+    // Si no recibe loanId, es porque asume que hay un solo Loan por address sin haber sido retirado su token.
+   
     }
 
-    //Debería de recibir el id del loan para setear el interest
     function setInterest(uint8 _interestPercentage) external {
-
     }
 
     function payment() external payable {
