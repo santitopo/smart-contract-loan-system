@@ -84,8 +84,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     function setDeadline(uint256 _maxTime) external {
         uint256 loanId = loanByAddress[msg.sender];
         require(loanId , "Loan: sender has no ongoing loan");
-        Loan memory loan = loans[loanId];
-        loan.dueDate = _maxTime;
+        loans[loanId].dueDate = _maxTime;
     }
 
     function getDeadline() external view returns(uint256 _maxTime) {
