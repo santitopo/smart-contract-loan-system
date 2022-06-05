@@ -3,20 +3,24 @@ pragma solidity 0.8.14;
 
 import "./Owneable.sol";
 import "./ERC721Receiver.sol";
+import "./NFTContract.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
+
 
 // Podemos llamarle así al contrato asi podemos tener la entidad Loan?
 contract LoanContract is Owneable, ERC721Receiver {
-    uint256 public loanCounter = 1;
+    uint256 public loanCounter = 0;
     uint256 public loanAmount;
-    address public nftContract;     // El contrato que maneja los tokens
+    NFTContract private _nftContract;
     uint256 public interestPercentage;
     mapping (uint256 => Loan) public loans;
-    mapping (address => uint256) public loanByAddress; // Punteros al último de cada address 
+    mapping (address => uint256) public loanByAddress; // Punteros al último loan de cada address. Cuando se complete el Loan y se devuelva el token, se debería borrar de acá.
 
     struct Loan {
         uint256 tokenId;
         address requester;
-        // Que sería "balance del deudor"? --> cuanto a pagado hasta el momento
+        // Que sería "balance del deudor"?
         uint256 currentDebt;
         uint256 dueDate;
         uint256 loanAmount;
@@ -25,12 +29,21 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     enum LoanStatus { Pending, Approved, Rejected, Paid }
 
-    constructor(address _nftContract) payable {
+    constructor(address _nftContractAddress) payable {
         owner = msg.sender;
-        nftContract = _nftContract;
+        _nftContract = NFTContract(_nftContractAddress);
     }
 
-    function requestLoan(uint256 token_id) external {
+    function requestLoan(uint256 _tokenId) external {
+        require(loanByAddress[msg.sender] == 0 , "Loan: sender already has an ongoing loan");
+        require(_nftContract.ownerOf(_tokenId) == msg.sender, "Loan: You are not the owner of token ");
+
+        loanCounter += 1;
+        Loan storage newLoan = loans[loanCounter];
+        newLoan.tokenId = _tokenId;
+        newLoan.requester = msg.sender;
+        newLoan.status = LoanStatus.Pending;
+        loanByAddress[msg.sender] = loanCounter;
     }
 
     //Debería de recibir el id del loan para setear el amount
@@ -75,8 +88,11 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     }
 
-    function takeOwnership(uint256 _token_id) external {
-
+    function takeOwnership(uint256 _tokenId) external {
+        // recibe _tokenId. Busca su Loan en el mapping de tokens a Loans
+        // se fija que no esté pagado y que el tiempo ya se haya cumplido
+        // Si es así, llama al método del NFTContract transfer token, y transfiere el token a msg.sender (el owner)
+        // 
     }
 
     function withdraw(uint256 _amount) external {
