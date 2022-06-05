@@ -79,15 +79,22 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getLoanInformation(uint256 _loan_id) external view returns(Loan memory) {
-
+        return loans[_loan_id];
     }
 
     //Debería de recibir el id del loan para setear el deadline
     function setDeadline(uint256 _maxTime) external {
+        require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
+        uint256 loanId = loanByAddress[msg.sender];
+        Loan memory loan = loans[loanId];
+        loan.dueDate = _maxTime;
     }
 
     function getDeadline() external view returns(uint256 _maxTime) {
-
+        require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
+        uint256 loanId = loanByAddress[msg.sender];
+        Loan memory loan = loans[loanId];
+        return loan.dueDate;
     }
 
     function takeOwnership(uint256 _tokenId) external {
