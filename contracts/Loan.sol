@@ -58,9 +58,7 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     }
 
-    function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
-    // Si recibe uint256 loanId implica que puede haber un loan Paid, sin haber sido retirado su token. (Cambiar el nombre del mapping por activeLoanByAddress)
-    // Si no recibe loanId, es porque asume que hay un solo Loan por address sin haber sido retirado su token.
+    function withdrawNFT() external {
         require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
         uint256 loanId = loanByAddress[msg.sender];
         Loan memory loan = loans[loanId];
@@ -84,8 +82,8 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     //Debería de recibir el id del loan para setear el deadline
     function setDeadline(uint256 _maxTime) external {
-        require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
         uint256 loanId = loanByAddress[msg.sender];
+        require(loanId , "Loan: sender has no ongoing loan");
         Loan memory loan = loans[loanId];
         loan.dueDate = _maxTime;
     }
