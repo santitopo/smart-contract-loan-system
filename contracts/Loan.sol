@@ -62,6 +62,7 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
         uint256 loanId = loanByAddress[msg.sender];
         Loan memory loan = loans[loanId];
+        loanByAddress[msg.sender] = 0;
         _nftContract.safeTransfer(msg.sender, loan.tokenId);
     }
 
@@ -88,8 +89,8 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getDeadline() external view returns(uint256 _maxTime) {
-        require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
         uint256 loanId = loanByAddress[msg.sender];
+        require(loanId , "Loan: sender has no ongoing loan");
         Loan memory loan = loans[loanId];
         return loan.dueDate;
     }
