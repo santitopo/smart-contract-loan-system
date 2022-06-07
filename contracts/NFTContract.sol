@@ -9,7 +9,6 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
     uint256 public identifier = 1;
     string public name;
     string public symbol;
-    // Sería cantidad total de NFTs que se permitirá mintear?
     uint256 public totalSupply;
     uint256 private _mintPrice;
     // Se podrían usar signed int no? Aunque si tenemos que respetar las firmas afecta.
@@ -124,5 +123,9 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
 
     function _isContract(address _contractAddress) private view returns(bool) {
         return _contractAddress.code.length > 0;
+    }
+
+    function withdraw(uint256 _amount) external {
+
     }
 }
