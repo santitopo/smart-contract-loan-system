@@ -48,16 +48,26 @@ contract LoanContract is Owneable, ERC721Receiver {
         loanByAddress[msg.sender] = loanCounter;
     }
 
-    //Debería de recibir el id del loan para setear el amount
-    function setLoanAmount(uint256 _loanAmount) external {
+    function setLoanAmount(uint256 _tokenId, uint256 _loanAmount) external {
         loanAmount = _loanAmount;
     }
 
-    function getLoanStatus() external view returns(string memory) {
+    function getLoanStatus() external view returns(string memory) isContractOwner(){
+        require(loanByAddress[msg.sender] == 0, "The address has no loans"); // Verificar si es correcto
+        uint256 loanId = loanByAddress[msg.sender];
+        Loan loanInfo = getLoanInformation(loanId);
+        return loanInfo.status;
     }
 
-    function withdrawLoanAmount() external {
+    function withdrawLoanAmount() external isContractOwner() {
+        require(getLoanStatus() == LoanStatus.Approved, "The Loan is not approved yet");
+        uint256 loanId = loanByAddress[msg.sender];
+        Loan loanInfo = getLoanInformation(loanId);
 
+        //Setear el estado del prestamo a pagado y luego pagar
+
+        payable(msg.sender).transfer(loanInfo.loanAmount);
+        
     }
 
     function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
@@ -79,7 +89,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getLoanInformation(uint256 _loan_id) external view returns(Loan memory) {
-
+        return loans[_loan_id];
     }
 
     //Debería de recibir el id del loan para setear el deadline
@@ -106,8 +116,8 @@ contract LoanContract is Owneable, ERC721Receiver {
         _nftContractAddress.call(methodToCall);        
     }
 
-    function withdraw(uint256 _amount) external {
-
+    function withdraw(uint256 _amount) external isContractOwner() {
+        payable(msg.sender).transfer(_amount);
     }
 
     receive() external payable {

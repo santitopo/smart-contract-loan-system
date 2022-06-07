@@ -125,7 +125,7 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         return _contractAddress.code.length > 0;
     }
 
-    function withdraw(uint256 _amount) external {
-
+    function withdraw(uint256 _amount) external isContractOwner() {
+        payable(msg.sender).transfer(_amount);
     }
 }
