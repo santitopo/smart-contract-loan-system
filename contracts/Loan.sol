@@ -75,7 +75,9 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getDebt() external view returns(uint256) {
-
+       uint256 loanId = loanByAddress[msg.sender];
+       require(loanId != 0 , "Loan: sender doesn't have an ongoing loan");
+       return loans[loanId].currentDebt;
     }
 
     function getLoanInformation(uint256 _loan_id) external view returns(Loan memory) {
