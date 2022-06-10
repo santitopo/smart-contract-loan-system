@@ -63,11 +63,8 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(getLoanStatus() == LoanStatus.Approved, "The Loan is not approved yet");
         uint256 loanId = loanByAddress[msg.sender];
         Loan loanInfo = getLoanInformation(loanId);
-
-        //Setear el estado del prestamo a pagado y luego pagar
-
-        payable(msg.sender).transfer(loanInfo.loanAmount);
-        
+        loanInfo.status = LoanStatus.Paid;
+        payable(msg.sender).transfer(loanInfo.loanAmount);    
     }
 
     function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
