@@ -49,8 +49,8 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el amount
-    function setLoanAmount(uint256 _loanAmount) external {
-        loanAmount = _loanAmount;
+    function setLoanAmount(uint256 _loanAmount, uint256 _loanId) external isContractOwner(){
+        loans[_loanId].loanAmount = _loanAmount;
     }
 
     function getLoanStatus() external view returns(string memory) {
@@ -61,11 +61,12 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function withdrawNFT() external {
-        require(loanByAddress[msg.sender] != 0 , "Loan: sender has no ongoing loan");
         uint256 loanId = loanByAddress[msg.sender];
-        Loan memory loan = loans[loanId];
+        require(loanId != 0 , "Loan: sender has no ongoing loan");
         loanByAddress[msg.sender] = 0;
-        _nftContract.safeTransfer(msg.sender, loan.tokenId);
+        // _nftContract.safeTransfer(msg.sender, loan.tokenId);
+        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, loans[loanId].tokenId);
+        _nftContractAddress.call(methodToCall);
     }
 
     function setInterest(uint8 _interestPercentage) external {
@@ -86,17 +87,12 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el deadline
-    function setDeadline(uint256 _maxTime) external {
-        uint256 loanId = loanByAddress[msg.sender];
-        require(loanId , "Loan: sender has no ongoing loan");
-        loans[loanId].dueDate = _maxTime;
+    function setDeadline(uint256 _maxTime, uint256 _loanId) external isContractOwner(){
+        loans[_loanId].dueDate = _maxTime;
     }
 
-    function getDeadline() external view returns(uint256 _maxTime) {
-        uint256 loanId = loanByAddress[msg.sender];
-        require(loanId , "Loan: sender has no ongoing loan");
-        Loan memory loan = loans[loanId];
-        return loan.dueDate;
+    function getDeadline(uint256 _loanId) external view returns(uint256 _maxTime) {
+        return loans[_loanId].dueDate;
     }
 
     function takeOwnership(uint256 _tokenId) external isContractOwner() {
