@@ -53,18 +53,19 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getLoanStatus() external view returns(string memory) isContractOwner(){
-        require(loanByAddress[msg.sender] == 0, "The address has no loans"); // Verificar si es correcto
+        require(loanByAddress[msg.sender] != 0, "The address has no loans");
         uint256 loanId = loanByAddress[msg.sender];
-        Loan loanInfo = getLoanInformation(loanId);
-        return loanInfo.status;
+        return loans[loanId].status;
     }
 
-    function withdrawLoanAmount() external isContractOwner() {
+    function withdrawLoanAmount() external {
         require(getLoanStatus() == LoanStatus.Approved, "The Loan is not approved yet");
         uint256 loanId = loanByAddress[msg.sender];
-        Loan loanInfo = getLoanInformation(loanId);
-        loanInfo.status = LoanStatus.Paid;
-        payable(msg.sender).transfer(loanInfo.loanAmount);    
+        require(_nftContract.ownerOf(loans[loanId].tokenId) == msg.sender, "Loan: You are not the owner of token ");
+        loans[loanId].status = LoanStatus.Approved;
+        
+        uint256 loanAmount = loans[loanId].loanAmount;
+        payable(msg.sender).transfer(loanAmount);    
     }
 
     function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
