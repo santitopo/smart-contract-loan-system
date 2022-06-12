@@ -48,8 +48,8 @@ contract LoanContract is Owneable, ERC721Receiver {
         loanByAddress[msg.sender] = loanCounter;
     }
 
-    function setLoanAmount(uint256 _tokenId, uint256 _loanAmount) external {
-        loanAmount = _loanAmount;
+    function setLoanAmount(uint256 _loanAmount, uint256 _loanId) external isContractOwner(){
+        loans[_loanId].loanAmount = _loanAmount;
     }
 
     function getLoanStatus() external view returns(string memory) isContractOwner(){
@@ -67,11 +67,13 @@ contract LoanContract is Owneable, ERC721Receiver {
         payable(msg.sender).transfer(loanInfo.loanAmount);    
     }
 
-    function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
-    
-    // Si recibe uint256 loanId implica que puede haber un loan Paid, sin haber sido retirado su token. (Cambiar el nombre del mapping por activeLoanByAddress)
-    // Si no recibe loanId, es porque asume que hay un solo Loan por address sin haber sido retirado su token.
-   
+    function withdrawNFT() external {
+        uint256 loanId = loanByAddress[msg.sender];
+        require(loanId != 0 , "Loan: sender has no ongoing loan");
+        loanByAddress[msg.sender] = 0;
+        // _nftContract.safeTransfer(msg.sender, loan.tokenId);
+        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, loans[loanId].tokenId);
+        _nftContractAddress.call(methodToCall);
     }
 
     function setInterest(uint8 _interestPercentage) external {
@@ -82,7 +84,9 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getDebt() external view returns(uint256) {
-
+       uint256 loanId = loanByAddress[msg.sender];
+       require(loanId != 0 , "Loan: sender doesn't have an ongoing loan");
+       return loans[loanId].currentDebt;
     }
 
     function getLoanInformation(uint256 _loan_id) external view returns(Loan memory) {
@@ -90,11 +94,12 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el deadline
-    function setDeadline(uint256 _maxTime) external {
+    function setDeadline(uint256 _maxTime, uint256 _loanId) external isContractOwner(){
+        loans[_loanId].dueDate = _maxTime;
     }
 
-    function getDeadline() external view returns(uint256 _maxTime) {
-
+    function getDeadline(uint256 _loanId) external view returns(uint256 _maxTime) {
+        return loans[_loanId].dueDate;
     }
 
     function takeOwnership(uint256 _tokenId) external isContractOwner() {
