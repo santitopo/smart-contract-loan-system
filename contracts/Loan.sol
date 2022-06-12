@@ -13,7 +13,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     string public executionResult; //Borrar en producción
     NFTContract private _nftContract;
     address private _nftContractAddress;
-    uint256 public interestPercentage;
+    uint8 public interestPercentage;
     mapping (uint256 => Loan) public loans;
     mapping (uint256 => uint256) public loanByToken; // Puntero al útlimo loan de un token. Cuando se complete el Loan (y se devuelve el token), se debería borrar de acá.
     mapping (address => uint256) public loanByAddress; // Punteros al último loan de cada address. Cuando se complete el Loan (y se devuelva el token), se debería borrar de acá.
@@ -49,8 +49,10 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el amount
-    function setLoanAmount(uint256 _loanAmount) external {
-        loanAmount = _loanAmount;
+    function setLoanAmount(uint256 _tokenId, uint256 _loanAmount) external {
+        uint256 _loanId = loanByToken[_tokenId];
+        require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
+        loans[_loanId].loanAmount = _loanAmount;
     }
 
     function getLoanStatus() external view returns(string memory) {
@@ -67,11 +69,20 @@ contract LoanContract is Owneable, ERC721Receiver {
    
     }
 
-    function setInterest(uint8 _interestPercentage) external {
+    function setInterest(uint8 _interestPercentage) external isContractOwner() {
+        interestPercentage = _interestPercentage;
     }
 
     function payment() external payable {
-
+        uint256 loanId = loanByAddress[msg.sender];
+        require(loanId != 0 && loans[loanId].dueDate >= block.timestamp && loans[loanId].status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
+        if(loans[loanId].currentDebt > msg.value){
+            loans[loanId].currentDebt -= msg.value;
+        }
+        else {
+            loans[loanId].currentDebt = 0;
+            loans[loanId].status = LoanStatus.Paid;
+        }
     }
 
     function getDebt() external view returns(uint256) {
@@ -85,11 +96,15 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el deadline
-    function setDeadline(uint256 _maxTime) external {
+    function setDeadline(uint256 _maxTime, uint256 _loanId) external isContractOwner(){
+        require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
+        loans[_loanId].dueDate = _maxTime;
     }
 
-    function getDeadline() external view returns(uint256 _maxTime) {
-
+    function getDeadline() external view returns(uint256) {
+        uint256 loanId = loanByAddress[msg.sender];
+       require(loanId != 0 , "Loan: sender doesn't have an ongoing loan");
+       return loans[loanId].dueDate;   
     }
 
     function takeOwnership(uint256 _tokenId) external isContractOwner() {
