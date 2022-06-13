@@ -62,11 +62,13 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     }
 
-    function withdrawNFT() external { //Se puede usar para retirar el token cuando está finalizado el Loan, o 
-    
-    // Si recibe uint256 loanId implica que puede haber un loan Paid, sin haber sido retirado su token. (Cambiar el nombre del mapping por activeLoanByAddress)
-    // Si no recibe loanId, es porque asume que hay un solo Loan por address sin haber sido retirado su token.
-   
+    function withdrawNFT() external {
+        uint256 loanId = loanByAddress[msg.sender];
+        require(loanId != 0 , "Loan: sender has no ongoing loan");
+        loanByAddress[msg.sender] = 0;
+        // _nftContract.safeTransfer(msg.sender, loan.tokenId);
+        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, loans[loanId].tokenId);
+        _nftContractAddress.call(methodToCall);
     }
 
     function setInterest(uint8 _interestPercentage) external isContractOwner() {
@@ -92,7 +94,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     function getLoanInformation(uint256 _loan_id) external view returns(Loan memory) {
-
+        return loans[_loan_id];
     }
 
     //Debería de recibir el id del loan para setear el deadline
