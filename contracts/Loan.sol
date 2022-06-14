@@ -38,7 +38,10 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     function requestLoan(uint256 _tokenId) external {
         require(loanByAddress[msg.sender] == 0 , "Loan: sender already has an ongoing loan");
-        require(_nftContract.ownerOf(_tokenId) == msg.sender, "Loan: You are not the owner of token ");
+
+        // require(_nftContract.ownerOf(_tokenId) == msg.sender, "Loan: You are not the owner of token ");
+        bytes memory methodToCall = abi.encodeWithSignature("getOwnerOfMapping(uint256)", loans[loanId].tokenId);
+        require(_nftContractAddress.call(methodToCall) == address(this), "Loan: You are not the owner of token ");
 
         loanCounter += 1;
         Loan storage newLoan = loans[loanCounter];
@@ -61,9 +64,11 @@ contract LoanContract is Owneable, ERC721Receiver {
     function withdrawLoanAmount() external {
         require(getLoanStatus() == LoanStatus.Approved, "The Loan is not approved yet");
         uint256 loanId = loanByAddress[msg.sender];
-        require(_nftContract.ownerOf(loans[loanId].tokenId) == msg.sender, "Loan: You are not the owner of token ");
+
+        bytes memory methodToCall = abi.encodeWithSignature("getOwnerOfMapping(uint256)", loans[loanId].tokenId);
+        require(_nftContractAddress.call(methodToCall) == address(this), "Loan: You are not the owner of token ");
+
         loans[loanId].status = LoanStatus.Approved;
-        
         uint256 loanAmount = loans[loanId].loanAmount;
         payable(msg.sender).transfer(loanAmount);    
     }
