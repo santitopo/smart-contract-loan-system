@@ -36,10 +36,6 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         _;
     }
 
-    function getOwnerOfMapping(uint256 _tokenId) external returns(address) {
-        return ownerOf[_tokenId];
-    }
-
     function tokenURI(uint256 _tokenId) external view returns (string memory uri) {
         NFTMetaData memory token = _nfts[_tokenId];
         require(token.tokenId != 0, "Token does not exist");
