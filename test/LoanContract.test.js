@@ -42,4 +42,64 @@ describe(loanContractName || " Contract test", () => {
         }
         expect(failed).to.be.true
     })
+
+    it("Check set deadline inexistant loan id", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.setDeadline(10,1);
+        } catch (error) {
+            if (error.message.includes("Loan: loan with that loanId doesn't exist")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check use not owned token", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.requestLoan(1);
+        } catch (error) {
+            if (error.message.includes("Loan: You are not the owner of token ")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot set loan amount in non existant Loan", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.setLoanAmount(1,50);
+        } catch (error) {
+            if (error.message.includes("Loan: loan with that loanId doesn't exist")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot withdraw NFT without Loan", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.withdrawNFT();
+        } catch (error) {
+            if (error.message.includes("Loan: sender has no ongoing loan")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot getDebt without a Loan", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.getDebt();
+        } catch (error) {
+            if (error.message.includes("Loan: sender doesn't have an ongoing loan")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot take ownership of token that is not in any Loan", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.takeOwnership(1);
+        } catch (error) {
+            if (error.message.includes("The token doesn't belong to any loan")) failed = true
+        }
+        expect(failed).to.be.true
+    })
 })
