@@ -48,4 +48,14 @@ describe(contractName || " Contract test", () => {
         }
         expect(failed).to.be.true
     })
+
+    it("Check get token URI of non existant token", async() => {
+        let failed = false
+        try {
+            await deployedContractInstance.tokenURI(50);
+        } catch (error) {
+            if (error.message.includes("Token does not exist")) failed = true
+        }
+        expect(failed).to.be.true
+    })
 })
