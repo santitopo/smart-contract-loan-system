@@ -38,13 +38,11 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     function requestLoan(uint256 _tokenId) external {
         require(loanByAddress[msg.sender] == 0 , "Loan: sender already has an ongoing loan");
-
         bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", _tokenId);
         (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
         if(_success == true){
             require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
         }
-
         loanCounter += 1;
         Loan storage newLoan = loans[loanCounter];
         newLoan.tokenId = _tokenId;
