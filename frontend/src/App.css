@@ -1,0 +1,19 @@
+.h1 {
+  width: 100%;
+}
+
+.label {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.inputElement {
+  outline: none;
+  border: 1px solid #ccc;
+  background-color: white;
+  font: inherit;
+  padding: 6px 10px;
+  display: block;
+  width: 20%;
+}

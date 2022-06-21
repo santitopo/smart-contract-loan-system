@@ -6,6 +6,7 @@ import "./ERC721Receiver.sol";
 import "./NFTContract.sol";
 
 
+// Podemos llamarle así al contrato asi podemos tener la entidad Loan?
 contract LoanContract is Owneable, ERC721Receiver {
     uint256 public loanCounter = 0;
     uint256 public loanAmount;
@@ -37,12 +38,7 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     function requestLoan(uint256 _tokenId) external {
         require(loanByAddress[msg.sender] == 0 , "Loan: sender already has an ongoing loan");
-
-        bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", _tokenId);
-        (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
-        if(_success == true){
-            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
-        }
+        require(_nftContract.ownerOf(_tokenId) == msg.sender, "Loan: You are not the owner of token ");
 
         loanCounter += 1;
         Loan storage newLoan = loans[loanCounter];
@@ -59,23 +55,11 @@ contract LoanContract is Owneable, ERC721Receiver {
         loans[_loanId].loanAmount = _loanAmount;
     }
 
-    function getLoanStatus() external view isContractOwner() returns (LoanStatus)  {
-        require(loanByAddress[msg.sender] != 0, "The address has no loans");
-        uint256 loanId = loanByAddress[msg.sender];
-        return loans[loanId].status;
+    function getLoanStatus() external view returns(string memory) {
     }
 
     function withdrawLoanAmount() external {
-        uint256 loanId = loanByAddress[msg.sender];
-        require(loans[loanId].status == LoanStatus.Approved, "The Loan is not approved yet");
-        bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", loans[loanId].tokenId);
-        (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
-         if(_success == true){
-            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
-        }
-        loans[loanId].status = LoanStatus.Approved;
-        uint256 lAmount = loans[loanId].loanAmount;
-        payable(msg.sender).transfer(lAmount);
+
     }
 
     function withdrawNFT() external {
@@ -122,7 +106,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     function getDeadline() external view returns(uint256) {
         uint256 loanId = loanByAddress[msg.sender];
        require(loanId != 0 , "Loan: sender doesn't have an ongoing loan");
-       return loans[loanId].dueDate;
+       return loans[loanId].dueDate;   
     }
 
     function takeOwnership(uint256 _tokenId) external isContractOwner() {
@@ -134,15 +118,15 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(foundLoan.dueDate < block.timestamp,"The loan's due date hasn't been reached yet");
         // Si estas validaciones se cumplen, llama al método del NFTContract transfer token, y transfiere el token a msg.sender (el owner)
 
-        //Forma 1 de llamar
+        //Forma 1 de llamar        
         // _nftContract.safeTransfer(msg.sender, _tokenId);
 
         bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, _tokenId);
-        _nftContractAddress.call(methodToCall);
+        _nftContractAddress.call(methodToCall);        
     }
 
-    function withdraw(uint256 _amount) external isContractOwner() {
-        payable(msg.sender).transfer(_amount);
+    function withdraw(uint256 _amount) external {
+
     }
 
     receive() external payable {
