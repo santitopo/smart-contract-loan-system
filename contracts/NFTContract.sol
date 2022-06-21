@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.14;
+pragma solidity 0.8.9;
 
 import "./Owneable.sol";
 import "./IERC721.sol";
@@ -94,6 +94,10 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         return (token.name, token.description, token.imageURI, token.mintDate);
     }
 
+    function getBalance() external view returns(uint256) {
+        return address(this).balance;
+    }
+
     // From openzeppelin implementation
     function _checkOnERC721Received(
         address _to,
@@ -121,7 +125,7 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         return _contractAddress.code.length > 0;
     }
 
-    function withdraw(uint256 _amount) external {
-
+    function withdraw(uint256 _amount) external isContractOwner() {
+        payable(msg.sender).transfer(_amount);
     }
 }
