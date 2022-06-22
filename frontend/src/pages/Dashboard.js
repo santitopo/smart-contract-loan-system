@@ -1,12 +1,19 @@
 import * as React from 'react';
 import Button from '@mui/material/Button';
+import CustomAppBar from '../components/CustomAppBar';
 
-export default function TemporaryDrawer({setIsOpened}) {
-return (
-    <div>
-        <React.Fragment>
-          <Button onClick={()=>setIsOpened((p)=>!p)} >{'Open options'}</Button>
-        </React.Fragment>
-    </div>
+import Background from '../components/Background';
+
+export default function Dashboard({ setIsOpened }) {
+  return (
+    <Background>
+      <CustomAppBar />
+      <Button
+        style={{ top: '50%', backgroundColor: 'white' }}
+        onClick={() => setIsOpened(p => !p)}
+      >
+        {'Open Menu'}
+      </Button>
+    </Background>
   );
 }

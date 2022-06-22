@@ -1,24 +1,19 @@
-import { default as React, useState } from 'react'
+import * as React from 'react';
+import Button from '@mui/material/Button';
+import CustomAppBar from '../components/CustomAppBar';
 
-function NFTData() {
-    const [tokenId, setTokenId] = useState('')
+import Background from '../components/Background';
 
-    return (
-        <div>
-            <h1>
-            Get NFT Data
-            </h1>
-            <h3>
-                Cumple con el requerimiento:
-            </h3>
-            <span>Obtener todos los datos de un NFT identificándolo por la cuenta conectada y el identificador del NFT</span>
-            <br/>
-            <br/>
-            <label className="label">Token ID</label>
-            <br/>
-            <input type="text" className="inputElement" onChange={(event) => setTokenId(event.target.value)} />
-        </div>
-    )
+export default function NFTData({ setIsOpened }) {
+  return (
+    <Background>
+      <CustomAppBar />
+      <Button
+        style={{ top: '50%', backgroundColor: 'white' }}
+        onClick={() => setIsOpened(p => !p)}
+      >
+        {'Open Menu'}
+      </Button>
+    </Background>
+  );
 }
-
-export default NFTData
