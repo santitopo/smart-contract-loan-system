@@ -3,6 +3,7 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import ContainerWithDrawer from './layouts/ContainerWithDrawer';
 import Dashboard from './pages/Dashboard';
 import Metamask from './pages/Metamask';
+import NFTData from './pages/NFTData';
 
 export default function Router(props) {
   const [isDrawerOpened, setDrawerOpened] = useState(false);
@@ -28,7 +29,7 @@ export default function Router(props) {
         },
         {
           path: 'nft_data',
-          element: <Dashboard setIsOpened={setDrawerOpened} />
+          element: <NFTData setIsOpened={setDrawerOpened} />
         },
         {
           path: 'nft_owner',
