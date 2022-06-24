@@ -41,7 +41,7 @@ contract LoanContract is Owneable, ERC721Receiver {
         bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", _tokenId);
         (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
         if(_success == true){
-            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
+            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token");
         }
         loanCounter += 1;
         Loan storage newLoan = loans[loanCounter];
@@ -52,8 +52,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el amount
-    function setLoanAmount(uint256 _tokenId, uint256 _loanAmount) external {
-        uint256 _loanId = loanByToken[_tokenId];
+    function setLoanAmount(uint256 _loanId, uint256 _loanAmount) external {
         require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
         loans[_loanId].loanAmount = _loanAmount;
     }
@@ -66,11 +65,13 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     function withdrawLoanAmount() external {
         uint256 loanId = loanByAddress[msg.sender];
-        require(loans[loanId].status == LoanStatus.Approved, "The Loan is not approved yet");
+        require(loans[loanId].status == LoanStatus.Pending, "The Loan is not pending");
+        require(loans[loanId].loanAmount > 0, "The amount is not set");
+        require(loans[loanId].dueDate > 0, "The dueDate is not set");
         bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", loans[loanId].tokenId);
         (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
         if(_success == true){
-            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
+            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token");
         }
         loans[loanId].status = LoanStatus.Approved;
         uint256 lAmount = loans[loanId].loanAmount;
@@ -113,7 +114,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el deadline
-    function setDeadline(uint256 _maxTime, uint256 _loanId) external isContractOwner(){
+    function setDeadline(uint256 _loanId, uint256 _maxTime) external isContractOwner(){
         require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
         loans[_loanId].dueDate = _maxTime;
     }

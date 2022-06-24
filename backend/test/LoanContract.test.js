@@ -27,7 +27,7 @@ describe(loanContractName || " Contract test", () => {
         const nftContractFactory      = await ethers.getContractFactory(nftContractPath, signer)
         deployedContractNFTInstance    = await nftContractFactory.deploy('ORT NFT', 'ORT', 100)
 
-        // Deploy contract Loan
+        // Deploy contract LoanContract
         const loanContractPath          = "contracts/" + loanContractName + ".sol:" + loanContractName
         const loanContractFactory       = await ethers.getContractFactory(loanContractPath, signer)
         deployedLoanContractInstance    = await loanContractFactory.deploy(deployedContractNFTInstance.address)
@@ -46,7 +46,7 @@ describe(loanContractName || " Contract test", () => {
     it("Check set deadline inexistant loan id", async() => {
         let failed = false
         try {
-            await deployedLoanContractInstance.setDeadline(10,1);
+            await deployedLoanContractInstance.setDeadline(1, 10);
         } catch (error) {
             if (error.message.includes("Loan: loan with that loanId doesn't exist")) failed = true
         }
@@ -58,7 +58,7 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.requestLoan(1);
         } catch (error) {
-            if (error.message.includes("Loan: You are not the owner of token ")) failed = true
+            if (error.message.includes("Loan: You are not the owner of token")) failed = true
         }
         expect(failed).to.be.true
     })
@@ -99,6 +99,56 @@ describe(loanContractName || " Contract test", () => {
             await deployedLoanContractInstance.takeOwnership(1);
         } catch (error) {
             if (error.message.includes("The token doesn't belong to any loan")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot getLoanStatus without a Loan", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.getLoanStatus();
+        } catch (error) {
+            if (error.message.includes("The address has no loans")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot withdrawLoanAmount if amount is not set", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.withdrawLoanAmount();
+        } catch (error) {
+            if (error.message.includes("The amount is not set")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+    
+    it("Check cannot withdrawLoanAmount if dueDate is not set", async() => {
+        let failed = false
+        const _tokenId = await deployedContractNFTInstance.safeMint('Name', 'Desc', 'image_uri');
+        const _loanId = deployedLoanContractInstance.loanByToken(_tokenId);
+        await deployedLoanContractInstance.setLoanAmount(_loanId, 40);
+        try {
+            await deployedLoanContractInstance.withdrawLoanAmount();
+        } catch (error) {
+            console.log("error", error.message);
+            if (error.message.includes("The dueDate is not set")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+    
+
+    it("Check cannot withdrawLoanAmount if not is the owner of the token", async() => {
+        let failed = false
+        const _tokenId = await deployedContractNFTInstance.safeMint('Name', 'Desc', 'image_uri');
+        await deployedLoanContractInstance.requestLoan(_tokenId);
+        const _loanId = deployedLoanContractInstance.loanByToken(_tokenId);
+        await deployedLoanContractInstance.setLoanAmount(_loanId, 40);
+        await deployedLoanContractInstance.setDeadline(_loanId, 30);
+        try {
+            await deployedLoanContractInstance.withdrawLoanAmount();
+        } catch (error) {
+            if (error.message.includes("Loan: You are not the owner of token")) failed = true
         }
         expect(failed).to.be.true
     })
