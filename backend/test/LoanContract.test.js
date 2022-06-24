@@ -190,7 +190,6 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
         } catch (error) {
-            console.log("error", error.message);
             if (error.message.includes("The dueDate is not set")) {
                 failed = true
             }  else {
