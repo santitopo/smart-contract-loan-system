@@ -3,15 +3,10 @@ pragma solidity 0.8.9;
 
 import "./Owneable.sol";
 import "./ERC721Receiver.sol";
-import "./NFTContract.sol";
 
-
-// Podemos llamarle así al contrato asi podemos tener la entidad Loan?
 contract LoanContract is Owneable, ERC721Receiver {
     uint256 public loanCounter = 0;
     uint256 public loanAmount;
-    string public executionResult; //Borrar en producción
-    NFTContract private _nftContract;
     address private _nftContractAddress;
     uint8 public interestPercentage;
     mapping (uint256 => Loan) public loans;
@@ -21,7 +16,6 @@ contract LoanContract is Owneable, ERC721Receiver {
     struct Loan {
         uint256 tokenId;
         address requester;
-        // Que sería "balance del deudor"?
         uint256 currentDebt;
         uint256 dueDate;
         uint256 loanAmount;
@@ -29,12 +23,17 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     enum LoanStatus { Pending, Approved, Rejected, Paid }
-    event WithDraw(address indexed _addr, uint256 _amount);
+
+    event Withdraw(address indexed _addr, uint256 _amount);
+    event Received(address indexed _addr, uint256 _amount);
 
     constructor(address _nftContractAddress_) payable {
         owner = msg.sender;
         _nftContractAddress = _nftContractAddress_;
-        _nftContract = NFTContract(_nftContractAddress_);
+    }
+
+    function setInterest(uint8 _interestPercentage) external isContractOwner() {
+        interestPercentage = _interestPercentage;
     }
 
     function requestLoan(uint256 _tokenId) external {
@@ -53,17 +52,34 @@ contract LoanContract is Owneable, ERC721Receiver {
         loanByAddress[msg.sender] = loanCounter;
     }
 
-    //Debería de recibir el id del loan para setear el amount
-    function setLoanAmount(uint256 _loanId, uint256 _loanAmount) external {
-        require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
-        loans[_loanId].loanAmount = _loanAmount;
-    }
-
-    function getLoanStatus() external view isContractOwner() returns (LoanStatus)  {
+    function getLoanStatus() external view returns (LoanStatus) {
         uint256 loanId = loanByAddress[msg.sender];
         require(loanId > 0, "The address has no loans");
         
         return loans[loanId].status;
+    }
+
+    function getLoanInformation(uint256 _loanId) external view isContractOwner() returns(Loan memory loan) {
+        require(_loanId > 0, "Invalid loan ID");
+        loan = loans[_loanId];
+        require(loan.tokenId > 0, "Loan does not exist");
+    }
+
+    function setLoanAmount(uint256 _loanId, uint256 _loanAmount) external {
+        require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
+        Loan storage loan = loans[_loanId];
+        require(loan.status == LoanStatus.Pending, "Loan status is not Pending so you cannot set its amount");
+        require(loan.loanAmount == 0, "Loan amount was already set");
+        loans[_loanId].loanAmount = _loanAmount;
+    }
+
+    // _maxTime is the amount of seconds that the client has to pay, so dueDate is now + _maxTime
+    function setDeadline(uint256 _loanId, uint256 _maxTime) external isContractOwner(){
+        require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
+        Loan storage loan = loans[_loanId];
+        require(loan.status == LoanStatus.Pending, "Loan status is not Pending so you cannot set its deadline");
+        require(loan.dueDate == 0, "Loan deadline was already set");
+        loans[_loanId].dueDate = block.timestamp + _maxTime;
     }
 
     function withdrawLoanAmount() external {
@@ -82,50 +98,7 @@ contract LoanContract is Owneable, ERC721Receiver {
         loans[loanId].status = LoanStatus.Approved;
         uint256 lAmount = loans[loanId].loanAmount;
         payable(msg.sender).transfer(lAmount);
-        emit WithDraw(msg.sender, lAmount);
-    }
-
-    function withdrawNFT() external {
-        uint256 loanId = loanByAddress[msg.sender];
-        require(loanId != 0 , "Loan: sender has no ongoing loan");
-        loanByAddress[msg.sender] = 0;
-        // _nftContract.safeTransfer(msg.sender, loan.tokenId);
-        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, loans[loanId].tokenId);
-        _nftContractAddress.call(methodToCall);
-    }
-
-    function setInterest(uint8 _interestPercentage) external isContractOwner() {
-        interestPercentage = _interestPercentage;
-    }
-
-    function payment() external payable {
-        uint256 loanId = loanByAddress[msg.sender];
-        require(loanId != 0 && loans[loanId].dueDate >= block.timestamp && loans[loanId].status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
-        if(loans[loanId].currentDebt > msg.value){
-            loans[loanId].currentDebt -= msg.value;
-        }
-        else {
-            loans[loanId].currentDebt = 0;
-            loans[loanId].status = LoanStatus.Paid;
-        }
-    }
-
-    function getDebt() external view returns(uint256) {
-        uint256 loanId = loanByAddress[msg.sender];
-        require(loanId != 0 , "Loan: sender doesn't have an ongoing loan");
-        return loans[loanId].currentDebt;
-    }
-
-    function getLoanInformation(uint256 _loanId) external view returns(Loan memory loan) {
-        require(_loanId > 0, "Invalid loan ID");
-        loan = loans[_loanId];
-        require(loan.tokenId > 0, "Loan does not exist");
-    }
-
-    //Debería de recibir el id del loan para setear el deadline
-    function setDeadline(uint256 _loanId, uint256 _maxTime) external isContractOwner(){
-        require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
-        loans[_loanId].dueDate = _maxTime;
+        emit Withdraw(msg.sender, lAmount);
     }
 
     function getDeadline() external view returns(uint256) {
@@ -134,27 +107,67 @@ contract LoanContract is Owneable, ERC721Receiver {
         return loans[loanId].dueDate;
     }
 
-    function takeOwnership(uint256 _tokenId) external isContractOwner() {
-        require(loanByToken[_tokenId] != 0, "The token doesn't belong to any loan");
+    function getDebt() external view returns(uint256) {
+        uint256 loanId = loanByAddress[msg.sender];
+        require(loanId != 0 , "Loan: sender doesn't have an ongoing loan");
+        return loans[loanId].currentDebt * (100 + interestPercentage);
+    }
 
-        uint256 loanId = loanByToken[_tokenId];
-        Loan storage foundLoan = loans[loanId];
-        require(foundLoan.status == LoanStatus.Approved,"The loan wasn't approved. You can't request ownership");
-        require(foundLoan.dueDate < block.timestamp,"The loan's due date hasn't been reached yet");
-        // Si estas validaciones se cumplen, llama al método del NFTContract transfer token, y transfiere el token a msg.sender (el owner)
+    function payment() external payable {
+        uint256 loanId = loanByAddress[msg.sender];
+        require(loanId != 0, "No active loan for sender");
 
-        //Forma 1 de llamar
-        // _nftContract.safeTransfer(msg.sender, _tokenId);
+        Loan storage loan = loans[loanId];
+        require(loan.dueDate > block.timestamp && loan.status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
 
-        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, _tokenId);
-        _nftContractAddress.call(methodToCall);
+        uint256 effectivePayment = msg.value / (100 + interestPercentage);
+        if (loan.currentDebt > effectivePayment) {
+            loan.currentDebt -= effectivePayment;
+        }
+        else {
+            loan.currentDebt = 0;
+            delete loanByAddress[msg.sender];
+            loan.status = LoanStatus.Paid;
+        }
+    }
+
+    function withdrawNFT() external {
+        uint256 loanId = loanByAddress[msg.sender];
+        require(loanId != 0 , "Loan: sender has no ongoing loan");
+        Loan memory activeLoan = loans[loanId];
+        require(activeLoan.status == LoanStatus.Paid, "Cannot withdraw NFT unless loan is paid");
+
+        delete loanByAddress[msg.sender];
+        delete loanByToken[activeLoan.tokenId];
+        
+        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, loans[loanId].tokenId);
+        (bool _success,) = _nftContractAddress.call(methodToCall);
+        require(_success, "Failed to transfer NFT back to client");
     }
 
     function withdraw(uint256 _amount) external isContractOwner() {
         payable(msg.sender).transfer(_amount);
     }
 
-    receive() external payable {
+    function takeOwnership(uint256 _tokenId) external isContractOwner() {
+        uint256 loanId = loanByToken[_tokenId];
+        require(loanId != 0, "The token doesn't belong to any loan");
+        
+        Loan storage foundLoan = loans[loanId];
+        require(foundLoan.status == LoanStatus.Approved, "The loan isn't approved. You can't request ownership");
+        require(block.timestamp >= foundLoan.dueDate, "The loan's due date hasn't been reached yet");
 
+        // Si estas validaciones se cumplen, llama al método del NFTContract transfer token, y transfiere el token desde LoanContract a msg.sender (el owner de LoanContract)
+        bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, _tokenId);
+        (bool _success,) = _nftContractAddress.call(methodToCall);
+        delete loanByAddress[foundLoan.requester];
+        delete loanByToken[_tokenId];
+        foundLoan.status = LoanStatus.Paid;
+
+        require(_success, "Failed to transfer NFT of expired loan to LoanContract owner");
+    }
+
+    receive() external payable {
+        emit Received(msg.sender, msg.value);
     }
 }

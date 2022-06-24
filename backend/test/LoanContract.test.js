@@ -70,7 +70,7 @@ describe(loanContractName || " Contract test", () => {
         expect(failed).to.be.true
     })
 
-    it("Check use not owned token", async() => {
+    it("Check cannot use not owned token", async() => {
         let failed = false
         try {
             await deployedLoanContractInstance.requestLoan(1);
@@ -190,7 +190,6 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
         } catch (error) {
-            console.log("error", error.message);
             if (error.message.includes("The dueDate is not set")) {
                 failed = true
             }  else {
@@ -201,7 +200,7 @@ describe(loanContractName || " Contract test", () => {
     })
 
     it("Check cannot withdrawLoanAmount if token was not transferred", async() => {
-        const maxTimeInSeconds = (new Date()).getSeconds() + 60
+        const maxTimeInSeconds = 60
         await deployedLoanContractInstance.connect(contractOwner).setDeadline(requestedLoanId, maxTimeInSeconds);
         let failed = false
         try {
