@@ -3,10 +3,10 @@ const fs            = require('fs')
 const path          = require('path')
 const { expect }    = require("chai")
 
-// Contract instance variable
-let provider, signer, deployedLoanContractInstance
-
-let deployedContractNFTInstance
+// Contract instance variables
+let provider, contractOwner, client1, client2, deployedLoanContractInstance, deployedContractNFTInstance, mintedTokenId, requestedLoanId
+const loanAmount = 500
+const mintPrice = 150
 
 // Constant
 const loanContractName = "LoanContract"
@@ -20,17 +20,26 @@ describe(loanContractName || " Contract test", () => {
 
         // Get provider and Signer
         provider = ethers.provider
-        signer = (await ethers.getSigners())[0]
+        contractOwner = (await ethers.getSigners())[0]
+        client1 = (await ethers.getSigners())[1]
+        client2 = (await ethers.getSigners())[2]
 
         // Deploy contract NftContract
         const nftContractPath          = "contracts/" + nftContractName + ".sol:" + nftContractName
-        const nftContractFactory      = await ethers.getContractFactory(nftContractPath, signer)
+        const nftContractFactory      = await ethers.getContractFactory(nftContractPath, contractOwner)
         deployedContractNFTInstance    = await nftContractFactory.deploy('ORT NFT', 'ORT', 100)
 
         // Deploy contract LoanContract
         const loanContractPath          = "contracts/" + loanContractName + ".sol:" + loanContractName
-        const loanContractFactory       = await ethers.getContractFactory(loanContractPath, signer)
-        deployedLoanContractInstance    = await loanContractFactory.deploy(deployedContractNFTInstance.address)
+        const loanContractFactory       = await ethers.getContractFactory(loanContractPath, contractOwner)
+        deployedLoanContractInstance    = await loanContractFactory.deploy(deployedContractNFTInstance.address, {value: 1000})
+        // Set mint price
+        await deployedContractNFTInstance.setPrice(mintPrice)
+
+        await deployedContractNFTInstance.connect(client1).safeMint('Name', 'Desc', 'image_uri', {value: mintPrice});
+        mintedTokenId = await deployedContractNFTInstance.identifier() - 1
+
+        console.log(`Client1 ${client1.address} minted token ${mintedTokenId} and has balance ${await provider.getBalance(client1.address)}`)
     })
 
     it("Check get deadline fails", async() => {
@@ -38,7 +47,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.getDeadline();
         } catch (error) {
-            if (error.message.includes("Loan: sender doesn't have an ongoing loan")) failed = true
+            if (error.message.includes("Loan: sender doesn't have an ongoing loan"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -48,7 +61,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.setDeadline(1, 10);
         } catch (error) {
-            if (error.message.includes("Loan: loan with that loanId doesn't exist")) failed = true
+            if (error.message.includes("Loan: loan with that loanId doesn't exist"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -58,7 +75,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.requestLoan(1);
         } catch (error) {
-            if (error.message.includes("Loan: You are not the owner of token")) failed = true
+            if (error.message.includes("You are not the owner of token"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -68,7 +89,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.setLoanAmount(1,50);
         } catch (error) {
-            if (error.message.includes("Loan: loan with that loanId doesn't exist")) failed = true
+            if (error.message.includes("Loan: loan with that loanId doesn't exist"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -78,7 +103,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.withdrawNFT();
         } catch (error) {
-            if (error.message.includes("Loan: sender has no ongoing loan")) failed = true
+            if (error.message.includes("Loan: sender has no ongoing loan"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -88,7 +117,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.getDebt();
         } catch (error) {
-            if (error.message.includes("Loan: sender doesn't have an ongoing loan")) failed = true
+            if (error.message.includes("Loan: sender doesn't have an ongoing loan"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -98,7 +131,11 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.takeOwnership(1);
         } catch (error) {
-            if (error.message.includes("The token doesn't belong to any loan")) failed = true
+            if (error.message.includes("The token doesn't belong to any loan"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
@@ -108,48 +145,89 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.getLoanStatus();
         } catch (error) {
-            if (error.message.includes("The address has no loans")) failed = true
+            if (error.message.includes("The address has no loans"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot withdrawLoanAmount if no pending Loan for address", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
+        } catch (error) {
+            if (error.message.includes("No pending loan for address")) {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
 
     it("Check cannot withdrawLoanAmount if amount is not set", async() => {
+        await deployedLoanContractInstance.connect(client1).requestLoan(mintedTokenId)
+        requestedLoanId = await deployedLoanContractInstance.loanCounter()
         let failed = false
         try {
-            await deployedLoanContractInstance.withdrawLoanAmount();
+            await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
         } catch (error) {
-            if (error.message.includes("The amount is not set")) failed = true
+            if (error.message.includes("The amount is not set")) {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
     
     it("Check cannot withdrawLoanAmount if dueDate is not set", async() => {
+        await deployedLoanContractInstance.connect(contractOwner).setLoanAmount(requestedLoanId, loanAmount);
         let failed = false
-        const _tokenId = await deployedContractNFTInstance.safeMint('Name', 'Desc', 'image_uri');
-        const _loanId = deployedLoanContractInstance.loanByToken(_tokenId);
-        await deployedLoanContractInstance.setLoanAmount(_loanId, 40);
         try {
-            await deployedLoanContractInstance.withdrawLoanAmount();
+            await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
         } catch (error) {
             console.log("error", error.message);
-            if (error.message.includes("The dueDate is not set")) failed = true
+            if (error.message.includes("The dueDate is not set")) {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
     })
-    
 
-    it("Check cannot withdrawLoanAmount if not is the owner of the token", async() => {
+    it("Check cannot withdrawLoanAmount if token was not transferred", async() => {
+        const maxTimeInSeconds = (new Date()).getSeconds() + 60
+        await deployedLoanContractInstance.connect(contractOwner).setDeadline(requestedLoanId, maxTimeInSeconds);
         let failed = false
-        const _tokenId = await deployedContractNFTInstance.safeMint('Name', 'Desc', 'image_uri');
-        await deployedLoanContractInstance.requestLoan(_tokenId);
-        const _loanId = deployedLoanContractInstance.loanByToken(_tokenId);
-        await deployedLoanContractInstance.setLoanAmount(_loanId, 40);
-        await deployedLoanContractInstance.setDeadline(_loanId, 30);
         try {
-            await deployedLoanContractInstance.withdrawLoanAmount();
+            await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
         } catch (error) {
-            if (error.message.includes("Loan: You are not the owner of token")) failed = true
+            if (error.message.includes("Token was not transferred to LoanContract")) {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
         }
         expect(failed).to.be.true
+    })
+
+    it("Check withdrawLoanAmount sends the money properly", async() => {
+        await deployedContractNFTInstance.connect(client1).safeTransfer(deployedLoanContractInstance.address, mintedTokenId)
+        const previousBalance = BigInt(await provider.getBalance(client1.address))
+        const tx = await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
+        const balanceAfterWithdraw = BigInt(await provider.getBalance(client1.address))
+        console.log("LoanContract Balance", await provider.getBalance(deployedLoanContractInstance.address))
+        console.log(await provider.getBalance(client1.address))
+        console.log((await provider.getBalance(client1.address)).toBigInt())
+        console.log(client1.address, previousBalance, balanceAfterWithdraw)
+        const receipt = await tx.wait();
+        console.log(receipt.events);
+        //console.log(receipt.events?.filter((x) => {return x.event == "Transfer"}));
+        expect(balanceAfterWithdraw).to.be.equals(previousBalance + BigInt(loanAmount))
     })
 })
