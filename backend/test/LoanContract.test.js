@@ -220,14 +220,12 @@ describe(loanContractName || " Contract test", () => {
         await deployedContractNFTInstance.connect(client1).safeTransfer(deployedLoanContractInstance.address, mintedTokenId)
         const previousBalance = BigInt(await provider.getBalance(client1.address))
         const tx = await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
-        const balanceAfterWithdraw = BigInt(await provider.getBalance(client1.address))
-        console.log("LoanContract Balance", await provider.getBalance(deployedLoanContractInstance.address))
-        console.log(await provider.getBalance(client1.address))
-        console.log((await provider.getBalance(client1.address)).toBigInt())
-        console.log(client1.address, previousBalance, balanceAfterWithdraw)
         const receipt = await tx.wait();
-        console.log(receipt.events);
-        //console.log(receipt.events?.filter((x) => {return x.event == "Transfer"}));
-        expect(balanceAfterWithdraw).to.be.equals(previousBalance + BigInt(loanAmount))
+        const transactionGasSpent = BigInt(receipt.cumulativeGasUsed * receipt.effectiveGasPrice)
+        const balanceAfterWithdraw = BigInt(await provider.getBalance(client1.address))
+        const balanceIfTransactionCostsWereZero = balanceAfterWithdraw + transactionGasSpent
+        
+        //console.log(receipt.events);
+        expect(balanceIfTransactionCostsWereZero).to.be.equals(BigInt(previousBalance) + BigInt(loanAmount))
     })
 })
