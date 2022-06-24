@@ -29,6 +29,7 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     enum LoanStatus { Pending, Approved, Rejected, Paid }
+    event WithDraw(address indexed _addr, uint256 _amount);
 
     constructor(address _nftContractAddress_) payable {
         owner = msg.sender;
@@ -40,9 +41,10 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(loanByAddress[msg.sender] == 0 , "Loan: sender already has an ongoing loan");
         bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", _tokenId);
         (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
-        if(_success == true){
-            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
-        }
+        require(_success, "Cannot retrieve owner from NFTContract");
+        address ownerAddress = abi.decode(_returnData, (address));
+        require(ownerAddress == msg.sender, "You are not the owner of token");
+
         loanCounter += 1;
         Loan storage newLoan = loans[loanCounter];
         newLoan.tokenId = _tokenId;
@@ -52,29 +54,35 @@ contract LoanContract is Owneable, ERC721Receiver {
     }
 
     //Debería de recibir el id del loan para setear el amount
-    function setLoanAmount(uint256 _tokenId, uint256 _loanAmount) external {
-        uint256 _loanId = loanByToken[_tokenId];
+    function setLoanAmount(uint256 _loanId, uint256 _loanAmount) external {
         require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
         loans[_loanId].loanAmount = _loanAmount;
     }
 
     function getLoanStatus() external view isContractOwner() returns (LoanStatus)  {
-        require(loanByAddress[msg.sender] != 0, "The address has no loans");
         uint256 loanId = loanByAddress[msg.sender];
+        require(loanId > 0, "The address has no loans");
+        
         return loans[loanId].status;
     }
 
     function withdrawLoanAmount() external {
         uint256 loanId = loanByAddress[msg.sender];
-        require(loans[loanId].status == LoanStatus.Approved, "The Loan is not approved yet");
+        require(loanId > 0, "No pending loan for address");
+        require(loans[loanId].status == LoanStatus.Pending, "The Loan is not pending");
+        require(loans[loanId].loanAmount > 0, "The amount is not set");
+        require(loans[loanId].dueDate > 0, "The dueDate is not set");
+
         bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", loans[loanId].tokenId);
         (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
-        if(_success == true){
-            require(keccak256(_returnData) == keccak256(abi.encodePacked(address(this))), "Loan: You are not the owner of token ");
-        }
+        require(_success, "Cannot retrieve owner from NFTContract");
+        address ownerAddress = abi.decode(_returnData, (address));
+        require(ownerAddress == address(this), "Token was not transferred to LoanContract");
+
         loans[loanId].status = LoanStatus.Approved;
         uint256 lAmount = loans[loanId].loanAmount;
         payable(msg.sender).transfer(lAmount);
+        emit WithDraw(msg.sender, lAmount);
     }
 
     function withdrawNFT() external {
@@ -108,12 +116,14 @@ contract LoanContract is Owneable, ERC721Receiver {
         return loans[loanId].currentDebt;
     }
 
-    function getLoanInformation(uint256 _loan_id) external view returns(Loan memory) {
-        return loans[_loan_id];
+    function getLoanInformation(uint256 _loanId) external view returns(Loan memory loan) {
+        require(_loanId > 0, "Invalid loan ID");
+        loan = loans[_loanId];
+        require(loan.tokenId > 0, "Loan does not exist");
     }
 
     //Debería de recibir el id del loan para setear el deadline
-    function setDeadline(uint256 _maxTime, uint256 _loanId) external isContractOwner(){
+    function setDeadline(uint256 _loanId, uint256 _maxTime) external isContractOwner(){
         require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
         loans[_loanId].dueDate = _maxTime;
     }
