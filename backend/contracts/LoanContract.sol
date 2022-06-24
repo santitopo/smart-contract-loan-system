@@ -4,7 +4,6 @@ pragma solidity 0.8.9;
 import "./Owneable.sol";
 import "./ERC721Receiver.sol";
 
-// Podemos llamarle así al contrato asi podemos tener la entidad Loan?
 contract LoanContract is Owneable, ERC721Receiver {
     uint256 public loanCounter = 0;
     uint256 public loanAmount;
@@ -68,12 +67,19 @@ contract LoanContract is Owneable, ERC721Receiver {
 
     function setLoanAmount(uint256 _loanId, uint256 _loanAmount) external {
         require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
+        Loan storage loan = loans[_loanId];
+        require(loan.status == LoanStatus.Pending, "Loan status is not Pending so you cannot set its amount");
+        require(loan.loanAmount == 0, "Loan amount was already set");
         loans[_loanId].loanAmount = _loanAmount;
     }
 
+    // _maxTime is the amount of seconds that the client has to pay, so dueDate is now + _maxTime
     function setDeadline(uint256 _loanId, uint256 _maxTime) external isContractOwner(){
         require(loans[_loanId].requester != address(0), "Loan: loan with that loanId doesn't exist");
-        loans[_loanId].dueDate = _maxTime;
+        Loan storage loan = loans[_loanId];
+        require(loan.status == LoanStatus.Pending, "Loan status is not Pending so you cannot set its deadline");
+        require(loan.dueDate == 0, "Loan deadline was already set");
+        loans[_loanId].dueDate = block.timestamp + _maxTime;
     }
 
     function withdrawLoanAmount() external {
@@ -112,7 +118,7 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(loanId != 0, "No active loan for sender");
 
         Loan storage loan = loans[loanId];
-        require(loan.dueDate >= block.timestamp && loan.status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
+        require(loan.dueDate > block.timestamp && loan.status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
 
         uint256 effectivePayment = msg.value / (100 + interestPercentage);
         if (loan.currentDebt > effectivePayment) {
@@ -149,7 +155,7 @@ contract LoanContract is Owneable, ERC721Receiver {
         
         Loan storage foundLoan = loans[loanId];
         require(foundLoan.status == LoanStatus.Approved, "The loan isn't approved. You can't request ownership");
-        require(foundLoan.dueDate < block.timestamp, "The loan's due date hasn't been reached yet");
+        require(block.timestamp >= foundLoan.dueDate, "The loan's due date hasn't been reached yet");
 
         // Si estas validaciones se cumplen, llama al método del NFTContract transfer token, y transfiere el token desde LoanContract a msg.sender (el owner de LoanContract)
         bytes memory methodToCall = abi.encodeWithSignature("safeTransfer(address,uint256)", msg.sender, _tokenId);

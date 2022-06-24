@@ -200,7 +200,7 @@ describe(loanContractName || " Contract test", () => {
     })
 
     it("Check cannot withdrawLoanAmount if token was not transferred", async() => {
-        const maxTimeInSeconds = (new Date()).getSeconds() + 60
+        const maxTimeInSeconds = 60
         await deployedLoanContractInstance.connect(contractOwner).setDeadline(requestedLoanId, maxTimeInSeconds);
         let failed = false
         try {
