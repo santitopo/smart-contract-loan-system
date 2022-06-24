@@ -3,8 +3,6 @@ pragma solidity 0.8.9;
 
 import "./Owneable.sol";
 import "./ERC721Receiver.sol";
-import "./NFTContract.sol";
-
 
 // Podemos llamarle así al contrato asi podemos tener la entidad Loan?
 contract LoanContract is Owneable, ERC721Receiver {
