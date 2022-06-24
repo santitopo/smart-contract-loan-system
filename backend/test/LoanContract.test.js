@@ -70,7 +70,7 @@ describe(loanContractName || " Contract test", () => {
         expect(failed).to.be.true
     })
 
-    it("Check use not owned token", async() => {
+    it("Check cannot use not owned token", async() => {
         let failed = false
         try {
             await deployedLoanContractInstance.requestLoan(1);
