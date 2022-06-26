@@ -5,12 +5,14 @@ import Toolbar from '@mui/material/Toolbar';
 import MenuIcon from '@mui/icons-material/Menu';
 
 import { IconButton, Typography } from '@mui/material';
+import { Box } from '@mui/system';
 
-const CustomAppBar = () => {
+const CustomAppBar = ({ title }) => {
   return (
     <AppBar position="absolute" open={true}>
       <Toolbar
         sx={{
+          textAlign: 'center',
           pr: '24px' // keep right padding when drawer closed
         }}
       >
@@ -26,7 +28,7 @@ const CustomAppBar = () => {
           <MenuIcon />
         </IconButton>
         <Typography component="h1" variant="h6" noWrap sx={{ flexGrow: 1 }}>
-          NFT Loans
+          {title}
         </Typography>
       </Toolbar>
     </AppBar>

@@ -16,7 +16,16 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { useNavigate } from 'react-router-dom';
 
 const screensList = [
-  { name: 'Dashboard', screen: '/dashboard', Icon: DashboardIcon },
+  {
+    name: 'NFT Contract',
+    screen: '/nftcontract',
+    Icon: DashboardIcon
+  },
+  {
+    name: 'Loan Contract',
+    screen: '/loancontract',
+    Icon: AccountBalanceWalletIcon
+  },
   { name: 'Metamask', screen: '/metamask', Icon: AccountBalanceWalletIcon },
   { name: 'NFT Data', screen: '/nft_data', Icon: InfoIcon },
   { name: 'NFT Owner', screen: '/nft_owner', Icon: AccountCircleIcon }

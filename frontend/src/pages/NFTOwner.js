@@ -7,7 +7,7 @@ import Background from '../components/Background';
 export default function NFTOwner({ setIsOpened }) {
   return (
     <Background>
-      <CustomAppBar />
+      <CustomAppBar title={'NFT Owner feature'} />
       <Button
         style={{ top: '50%', backgroundColor: 'white' }}
         onClick={() => setIsOpened(p => !p)}

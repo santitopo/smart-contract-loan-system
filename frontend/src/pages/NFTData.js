@@ -47,7 +47,7 @@ export default function NFTData({ setIsOpened }) {
 
   return (
     <Background>
-      <CustomAppBar />
+      <CustomAppBar title={'NFT Data Feature'} />
       <Container style={{ paddingTop: 200 }} />
       <Grid
         container

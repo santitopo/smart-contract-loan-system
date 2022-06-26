@@ -4,7 +4,6 @@ import CustomAppBar from '../components/CustomAppBar';
 import { nftContractABI } from '../abis/NFTContractAbi';
 import Web3 from 'web3';
 
-import Background from '../components/Background';
 import { Container, Grid, TextField, Typography } from '@mui/material';
 
 const READ = 'read';
@@ -73,7 +72,7 @@ const nftContract = new web3.eth.Contract(nftContractABI, contractAddr);
 
 const isReadMethod = method => method.type === READ;
 
-export default function Dashboard({ setIsOpened }) {
+export default function NFTContractControlPanel({ setIsOpened }) {
   const [state, dispatch] = React.useReducer(reducer, NFTContracttMethods);
   const setValue = (methodIndex, paramIndex, value) =>
     dispatch({ type: 'setValue', payload: { methodIndex, paramIndex, value } });
@@ -116,7 +115,7 @@ export default function Dashboard({ setIsOpened }) {
 
   return (
     <>
-      <CustomAppBar />
+      <CustomAppBar title={'NFT Contract Control Panel'} />
       <Container style={{ paddingTop: 100 }} />
       <Grid container rowSpacing={3}>
         <Grid item>

@@ -7,7 +7,7 @@ import Background from '../components/Background';
 function Metamask({ setIsOpened }) {
   return (
     <Background>
-      <CustomAppBar />
+      <CustomAppBar title={'Connect to Metamask'} />
 
       <div style={{ height: '90px' }} />
       <Button

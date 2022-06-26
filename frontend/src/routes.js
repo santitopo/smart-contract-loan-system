@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Navigate, useRoutes } from 'react-router-dom';
 import ContainerWithDrawer from './layouts/ContainerWithDrawer';
-import Dashboard from './pages/Dashboard';
+import NFTContractControlPanel from './pages/NFTContractControlPanel';
 import Metamask from './pages/Metamask';
 import NFTData from './pages/NFTData';
+import NFTOwner from './pages/NFTOwner';
+import LoanContractControlPanel from './pages/LoanContractControlPanel';
 
 export default function Router(props) {
   const [isDrawerOpened, setDrawerOpened] = useState(false);
@@ -18,10 +20,14 @@ export default function Router(props) {
         />
       ),
       children: [
-        { path: '/', element: <Navigate to="/dashboard" replace /> },
+        { path: '/', element: <Navigate to="/nftcontract" replace /> },
         {
-          path: 'dashboard',
-          element: <Dashboard setIsOpened={setDrawerOpened} />
+          path: 'nftcontract',
+          element: <NFTContractControlPanel setIsOpened={setDrawerOpened} />
+        },
+        {
+          path: 'loanContract',
+          element: <LoanContractControlPanel setIsOpened={setDrawerOpened} />
         },
         {
           path: 'metamask',
@@ -33,7 +39,7 @@ export default function Router(props) {
         },
         {
           path: 'nft_owner',
-          element: <Dashboard setIsOpened={setDrawerOpened} />
+          element: <NFTOwner setIsOpened={setDrawerOpened} />
         }
       ]
     }
