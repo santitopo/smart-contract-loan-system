@@ -5,7 +5,7 @@ import { nftContractABI } from '../abis/NFTContractAbi';
 import Web3 from 'web3';
 
 import Background from '../components/Background';
-import { Container, Grid, TextField } from '@mui/material';
+import { Container, Grid, TextField, Typography } from '@mui/material';
 
 const READ = 'read';
 const WRITE = 'write';
@@ -29,7 +29,13 @@ const contractMethods = [
   // { name: 'safeTransfer', type: WRITE, params: [{ name: '_tokenId', value: '' }] },
   { name: 'getPrice', type: READ, params: [] },
   { name: 'setPrice', type: WRITE, params: [{ name: 'price', value: 0 }] },
-  { name: 'getMetadata', type: READ, params: [{ name: '_tokenId', value: '' }] }
+  {
+    name: 'getMetadata',
+    type: READ,
+    params: [{ name: '_tokenId', value: '' }]
+  },
+  { name: 'getBalance', type: READ, params: [] },
+  { name: 'withdraw', type: WRITE, params: [{ name: 'amount', value: 0 }] }
 ];
 
 function reducer(state, action) {
@@ -44,6 +50,11 @@ function reducer(state, action) {
       newState[action.payload.methodIndex].params = params;
       return newState;
     }
+    case 'setReturned': {
+      const newState = { ...state };
+      newState[action.payload.methodIndex].returned = action.payload.returned;
+      return newState;
+    }
     default:
       return state;
   }
@@ -55,36 +66,40 @@ const nftContract = new web3.eth.Contract(nftContractABI, contractAddr);
 
 const isReadMethod = method => method.type === READ;
 
-const sendToContract = async (method, params) => {
-  const accounts = await window.ethereum.enable();
-  const account = accounts[0];
-  const gas = await nftContract.methods[method](
-    ...params.map(param => param.value)
-  ).estimateGas();
-  const result = await nftContract.methods[method](
-    ...params.map(param => param.value)
-  ).send({
-    from: account,
-    gas
-  });
-  console.log(result);
-};
-
-const readFromContract = async (method, params) => {
-  const result = await nftContract.methods[method](
-    ...params.map(param => param.value)
-  )
-    .call()
-    .then(rsp => {
-      console.log(`Response is ${rsp}`);
-    })
-    .catch(err => console.log(`Error! ${err}`));
-};
-
 export default function Dashboard({ setIsOpened }) {
   const [state, dispatch] = React.useReducer(reducer, contractMethods);
   const setValue = (methodIndex, paramIndex, value) =>
     dispatch({ type: 'setValue', payload: { methodIndex, paramIndex, value } });
+
+  const setReturned = (methodIndex, returned) =>
+    dispatch({ type: 'setReturned', payload: { methodIndex, returned } });
+
+  const readFromContract = async (method, params, methodIndex) => {
+    const result = await nftContract.methods[method](
+      ...params.map(param => param.value)
+    )
+      .call()
+      .then(rsp => {
+        setReturned(methodIndex, rsp);
+        console.log(`Response is ${rsp}`);
+      })
+      .catch(err => console.log(`Error! ${err}`));
+  };
+
+  const sendToContract = async (method, params) => {
+    const accounts = await window.ethereum.enable();
+    const account = accounts[0];
+    const gas = await nftContract.methods[method](
+      ...params.map(param => param.value)
+    ).estimateGas();
+    const result = await nftContract.methods[method](
+      ...params.map(param => param.value)
+    ).send({
+      from: account,
+      gas
+    });
+    console.log(result);
+  };
 
   return (
     <>
@@ -101,11 +116,15 @@ export default function Dashboard({ setIsOpened }) {
         </Grid>
         {contractMethods.map((method, methodIndex) => (
           <Grid key={method.name} item container xs={12}>
-            <Grid item xs={1}>
+            <Grid item xs={1.5}>
               <Button
                 onClick={() =>
                   isReadMethod(method)
-                    ? readFromContract(method.name, state[methodIndex].params)
+                    ? readFromContract(
+                        method.name,
+                        state[methodIndex].params,
+                        methodIndex
+                      )
                     : sendToContract(method.name, state[methodIndex].params)
                 }
                 style={{ backgroundColor: 'white' }}
@@ -128,6 +147,13 @@ export default function Dashboard({ setIsOpened }) {
                 />
               </Grid>
             ))}
+            <Grid item xs={4}>
+              {state[methodIndex].returned && (
+                <Typography
+                  color={'white'}
+                >{`Response: ${state[methodIndex].returned}`}</Typography>
+              )}
+            </Grid>
           </Grid>
         ))}
       </Grid>
