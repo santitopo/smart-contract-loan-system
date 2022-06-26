@@ -10,7 +10,7 @@ import { Container, Grid, TextField, Typography } from '@mui/material';
 const READ = 'read';
 const WRITE = 'write';
 
-const contractMethods = [
+const NFTContracttMethods = [
   { name: 'name', type: READ, params: [] },
   { name: 'symbol', type: READ, params: [] },
   { name: 'totalSupply', type: READ, params: [] },
@@ -26,7 +26,14 @@ const contractMethods = [
       { name: '_imageURI', value: '' }
     ]
   },
-  // { name: 'safeTransfer', type: WRITE, params: [{ name: '_tokenId', value: '' }] },
+  {
+    name: 'safeTransfer',
+    type: WRITE,
+    params: [
+      { name: '_to', value: '' },
+      { name: '_tokenId', value: '' }
+    ]
+  },
   { name: 'getPrice', type: READ, params: [] },
   { name: 'setPrice', type: WRITE, params: [{ name: 'price', value: 0 }] },
   {
@@ -67,7 +74,7 @@ const nftContract = new web3.eth.Contract(nftContractABI, contractAddr);
 const isReadMethod = method => method.type === READ;
 
 export default function Dashboard({ setIsOpened }) {
-  const [state, dispatch] = React.useReducer(reducer, contractMethods);
+  const [state, dispatch] = React.useReducer(reducer, NFTContracttMethods);
   const setValue = (methodIndex, paramIndex, value) =>
     dispatch({ type: 'setValue', payload: { methodIndex, paramIndex, value } });
 
@@ -75,30 +82,36 @@ export default function Dashboard({ setIsOpened }) {
     dispatch({ type: 'setReturned', payload: { methodIndex, returned } });
 
   const readFromContract = async (method, params, methodIndex) => {
-    const result = await nftContract.methods[method](
-      ...params.map(param => param.value)
-    )
-      .call()
-      .then(rsp => {
-        setReturned(methodIndex, rsp);
-        console.log(`Response is ${rsp}`);
-      })
-      .catch(err => console.log(`Error! ${err}`));
+    try {
+      const rsp = await nftContract.methods[method](
+        ...params.map(param => param.value)
+      ).call();
+      setReturned(methodIndex, rsp);
+      console.log({ rsp });
+    } catch (err) {
+      err.message && setReturned(methodIndex, err.message);
+      console.log(`Error! ${err}`);
+    }
   };
 
-  const sendToContract = async (method, params) => {
+  const sendToContract = async (method, params, methodIndex) => {
     const accounts = await window.ethereum.enable();
     const account = accounts[0];
-    const gas = await nftContract.methods[method](
-      ...params.map(param => param.value)
-    ).estimateGas();
-    const result = await nftContract.methods[method](
-      ...params.map(param => param.value)
-    ).send({
-      from: account,
-      gas
-    });
-    console.log(result);
+    try {
+      const gas = await nftContract.methods[method](
+        ...params.map(param => param.value)
+      ).estimateGas();
+      const rsp = await nftContract.methods[method](
+        ...params.map(param => param.value)
+      ).send({
+        from: account,
+        gas
+      });
+      console.log({ rsp });
+    } catch (err) {
+      err.message && setReturned(methodIndex, err.message);
+      console.log(`Error! ${err}`);
+    }
   };
 
   return (
@@ -114,7 +127,7 @@ export default function Dashboard({ setIsOpened }) {
             {'Open Menu'}
           </Button>
         </Grid>
-        {contractMethods.map((method, methodIndex) => (
+        {NFTContracttMethods.map((method, methodIndex) => (
           <Grid key={method.name} item container xs={12}>
             <Grid item xs={1.5}>
               <Button
@@ -125,7 +138,11 @@ export default function Dashboard({ setIsOpened }) {
                         state[methodIndex].params,
                         methodIndex
                       )
-                    : sendToContract(method.name, state[methodIndex].params)
+                    : sendToContract(
+                        method.name,
+                        state[methodIndex].params,
+                        methodIndex
+                      )
                 }
                 style={{ backgroundColor: 'white' }}
               >
