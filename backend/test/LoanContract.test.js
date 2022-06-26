@@ -6,6 +6,7 @@ const { expect }    = require("chai")
 // Contract instance variables
 let provider, contractOwner, client1, client2, deployedLoanContractInstance, deployedContractNFTInstance, mintedTokenId, requestedLoanId
 const loanAmount = 500
+const interestPercentage = 5
 const mintPrice = 150
 
 // Constant
@@ -33,8 +34,10 @@ describe(loanContractName || " Contract test", () => {
         const loanContractPath          = "contracts/" + loanContractName + ".sol:" + loanContractName
         const loanContractFactory       = await ethers.getContractFactory(loanContractPath, contractOwner)
         deployedLoanContractInstance    = await loanContractFactory.deploy(deployedContractNFTInstance.address, {value: 1000})
-        // Set mint price
+        
+        // Set conditions
         await deployedContractNFTInstance.setPrice(mintPrice)
+        await deployedLoanContractInstance.setInterest(interestPercentage)
 
         await deployedContractNFTInstance.connect(client1).safeMint('Name', 'Desc', 'image_uri', {value: mintPrice});
         mintedTokenId = await deployedContractNFTInstance.identifier() - 1
@@ -70,7 +73,7 @@ describe(loanContractName || " Contract test", () => {
         expect(failed).to.be.true
     })
 
-    it("Check cannot use not owned token", async() => {
+    it("Check requestLoan - cannot use not owned token", async() => {
         let failed = false
         try {
             await deployedLoanContractInstance.requestLoan(1);
@@ -159,7 +162,7 @@ describe(loanContractName || " Contract test", () => {
         try {
             await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
         } catch (error) {
-            if (error.message.includes("No pending loan for address")) {
+            if (error.message.includes("No active loan for address")) {
                 failed = true
             }  else {
                 console.log(error.message)
@@ -168,9 +171,16 @@ describe(loanContractName || " Contract test", () => {
         expect(failed).to.be.true
     })
 
-    it("Check cannot withdrawLoanAmount if amount is not set", async() => {
+    it("Check getLoanStatus - Request loan and get status - returns PENDING", async() => {
         await deployedLoanContractInstance.connect(client1).requestLoan(mintedTokenId)
         requestedLoanId = await deployedLoanContractInstance.loanCounter()
+        const status = await deployedLoanContractInstance.connect(client1).getLoanStatus()
+        
+        expect(status).to.be.equals(0)
+    })
+
+    it("Check cannot withdrawLoanAmount if amount is not set", async() => {
+        
         let failed = false
         try {
             await deployedLoanContractInstance.connect(client1).withdrawLoanAmount();
@@ -227,4 +237,63 @@ describe(loanContractName || " Contract test", () => {
         //console.log(receipt.events);
         expect(balanceIfTransactionCostsWereZero).to.be.equals(BigInt(previousBalance) + BigInt(loanAmount))
     })
+
+    it("Check getLoanStatus - returns APPROVED", async() => {
+        const status = await deployedLoanContractInstance.connect(client1).getLoanStatus()
+        
+        expect(status).to.be.equals(1)
+    })
+
+    it("Check getDebt - returns correct debt plus interests", async() => {
+        const debt = await deployedLoanContractInstance.connect(client1).getDebt()
+        
+        const expectedDebt = loanAmount * (100 + interestPercentage) / 100
+        expect(BigInt(debt)).to.be.equals(BigInt(expectedDebt))
+    })
+
+    it("Check payment - Send 105 then reduces debt properly", async() => {
+        const paymentAmount = 105
+        const tx = await deployedLoanContractInstance.connect(client1).payment({value: paymentAmount})
+        const receipt = await tx.wait()
+        const debt = await deployedLoanContractInstance.connect(client1).getDebt()
+        
+        const expectedDebt = ((400) * (100 + interestPercentage)) / 100
+        expect(BigInt(debt)).to.be.equals(BigInt(expectedDebt))
+        const paymentEvent = getEvent(receipt.events, 'Payment')
+        expect(eventContainsArgument(paymentEvent, '_paymentAmount', BigInt(paymentAmount), (arg) => BigInt(arg))).to.be.true
+        expect(eventContainsArgument(paymentEvent, '_remainingDebt', BigInt(expectedDebt), (arg) => BigInt(arg))).to.be.true
+    })
+
+    it("Check payment - Send remaining debt then PAID", async() => {
+        const debt = BigInt(await deployedLoanContractInstance.connect(client1).getDebt())
+        const tx = await deployedLoanContractInstance.connect(client1).payment({value: debt})
+        const receipt = await tx.wait()
+
+        const paymentEvent = getEvent(receipt.events, 'Payment')
+        expect(eventContainsArgument(paymentEvent, '_paymentAmount', BigInt(420), (arg) => BigInt(arg))).to.be.true
+        expect(eventContainsArgument(paymentEvent, '_remainingDebt', BigInt(0), (arg) => BigInt(arg))).to.be.true
+    })
 })
+
+const getEvent = (eventList, eventName) => {
+    let ev
+    eventList.forEach((item, _ix) => {
+        if (item.event === eventName) {
+            ev = item
+        }
+    })
+    return ev
+}
+
+const eventContainsArgument = (event, arg, expValue, converter) => {
+    if (!event) {
+        console.log('Null event')
+        return false
+    }
+    try {
+        return converter(event.args[arg]) === expValue
+    } catch (error) {
+        console.log(`Failed to convert ${event.args[arg]}`)
+        return false
+    }
+}
