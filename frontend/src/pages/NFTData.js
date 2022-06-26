@@ -2,17 +2,17 @@ import { default as React, useState } from 'react';
 import Button from '@mui/material/Button';
 import CustomAppBar from '../components/CustomAppBar';
 import Background from '../components/Background';
-import { nftContractABI } from '../abis/NFTContractAbi';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
 import Web3 from 'web3';
 import { color } from '@mui/system';
 import { Box, Container, Grid } from '@mui/material';
+import NFTContractAbi from '../abis/NFTContractAbi';
 console.log(Web3.givenProvider);
 const web3 = new Web3(Web3.givenProvider);
 const contractAddr = '0x8Acc8e8C1859fD7884cc2269760Ec19211372074';
-const nftContract = new web3.eth.Contract(nftContractABI, contractAddr);
+const nftContract = new web3.eth.Contract(NFTContractAbi, contractAddr);
 
 export default function NFTData({ setIsOpened }) {
   const [price, setPrice] = useState(0);
@@ -47,7 +47,7 @@ export default function NFTData({ setIsOpened }) {
 
   return (
     <Background>
-      <CustomAppBar title={'NFT Data Feature'} />
+      <CustomAppBar setIsOpened={setIsOpened} title={'NFT Data Feature'} />
       <Container style={{ paddingTop: 200 }} />
       <Grid
         container

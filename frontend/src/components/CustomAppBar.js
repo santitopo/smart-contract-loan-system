@@ -7,7 +7,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { IconButton, Typography } from '@mui/material';
 import { Box } from '@mui/system';
 
-const CustomAppBar = ({ title }) => {
+const CustomAppBar = ({ title, setIsOpened }) => {
   return (
     <AppBar position="absolute" open={true}>
       <Toolbar
@@ -17,13 +17,12 @@ const CustomAppBar = ({ title }) => {
         }}
       >
         <IconButton
+          size="large"
           edge="start"
           color="inherit"
-          aria-label="open drawer"
-          sx={{
-            marginRight: '36px',
-            ...(open && { display: 'none' })
-          }}
+          aria-label="menu"
+          sx={{ mr: 2 }}
+          onClick={() => setIsOpened(p => !p)}
         >
           <MenuIcon />
         </IconButton>
