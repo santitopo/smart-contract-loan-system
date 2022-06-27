@@ -2,9 +2,10 @@ const { ethers }    = require("hardhat")
 const fs            = require('fs')
 const path          = require('path')
 const { expect }    = require("chai")
+const {getEvent, eventContainsArgument}  = require('./testUtils')
 
 // Contract instance variables
-let provider, contractOwner, client1, client2, deployedLoanContractInstance, deployedContractNFTInstance, mintedTokenId, requestedLoanId
+let provider, contractOwner, client1, client2, deployedLoanContractInstance, deployedContractNFTInstance, mintedTokenId, mintedTokenId2, requestedLoanId, requestedLoanId2
 const loanAmount = 500
 const interestPercentage = 5
 const mintPrice = 150
@@ -39,8 +40,11 @@ describe(loanContractName || " Contract test", () => {
         await deployedContractNFTInstance.setPrice(mintPrice)
         await deployedLoanContractInstance.setInterest(interestPercentage)
 
+        // Mint tokens
         await deployedContractNFTInstance.connect(client1).safeMint('Name', 'Desc', 'image_uri', {value: mintPrice});
         mintedTokenId = await deployedContractNFTInstance.identifier() - 1
+        await deployedContractNFTInstance.connect(client2).safeMint('Name 2', 'Desc 2', 'image_uri_2', {value: mintPrice});
+        mintedTokenId2 = await deployedContractNFTInstance.identifier() - 1
 
         console.log(`Client1 ${client1.address} minted token ${mintedTokenId} and has balance ${await provider.getBalance(client1.address)}`)
     })
@@ -251,7 +255,21 @@ describe(loanContractName || " Contract test", () => {
         expect(BigInt(debt)).to.be.equals(BigInt(expectedDebt))
     })
 
-    it("Check payment - Send 105 then reduces debt properly", async() => {
+    it("Check takeOwnership - Loan not expired yet then fails", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.takeOwnership(mintedTokenId);
+        } catch (error) {
+            if (error.message.includes("The loan's due date hasn't been reached yet"))  {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check payment - Pay 105 then reduces debt properly", async() => {
         const paymentAmount = 105
         const tx = await deployedLoanContractInstance.connect(client1).payment({value: paymentAmount})
         const receipt = await tx.wait()
@@ -264,7 +282,23 @@ describe(loanContractName || " Contract test", () => {
         expect(eventContainsArgument(paymentEvent, '_remainingDebt', BigInt(expectedDebt), (arg) => BigInt(arg))).to.be.true
     })
 
-    it("Check payment - Send remaining debt then PAID", async() => {
+    it("Check withdrawNFT - NOT Paid then fails", async() => {
+        let failed = false
+        try {
+            await deployedLoanContractInstance.connect(client1).withdrawNFT()
+        } catch (error) {
+            if (error.message.includes("Cannot withdraw NFT unless loan is paid")) {
+                failed = true
+            }  else {
+                console.log(error.message)
+            }
+        }
+        expect(failed).to.be.true
+        const nftOwner = await deployedContractNFTInstance.ownerOf(mintedTokenId)
+        expect(nftOwner).to.be.equals(deployedLoanContractInstance.address)
+    })
+
+    it("Check payment - Pay remaining debt then PAID", async() => {
         const debt = BigInt(await deployedLoanContractInstance.connect(client1).getDebt())
         const tx = await deployedLoanContractInstance.connect(client1).payment({value: debt})
         const receipt = await tx.wait()
@@ -273,27 +307,34 @@ describe(loanContractName || " Contract test", () => {
         expect(eventContainsArgument(paymentEvent, '_paymentAmount', BigInt(420), (arg) => BigInt(arg))).to.be.true
         expect(eventContainsArgument(paymentEvent, '_remainingDebt', BigInt(0), (arg) => BigInt(arg))).to.be.true
     })
+
+    it("Check withdrawNFT - Paid then NFT si received", async() => {
+        await deployedLoanContractInstance.connect(client1).withdrawNFT()
+        
+        const nftOwner = await deployedContractNFTInstance.ownerOf(mintedTokenId)
+        expect(nftOwner).to.be.equals(client1.address)
+    })
+
+    it("Check takeOwnership - Loan expired then NFT transferred to contract owner", async() => {
+        // Set up new loan
+        await deployedLoanContractInstance.connect(client2).requestLoan(mintedTokenId2)
+        requestedLoanId2 = await deployedLoanContractInstance.loanCounter()
+        await deployedLoanContractInstance.connect(contractOwner).setDeadline(requestedLoanId2, 100);
+        await deployedLoanContractInstance.connect(contractOwner).setLoanAmount(requestedLoanId2, loanAmount);
+        await deployedContractNFTInstance.connect(client2).safeTransfer(deployedLoanContractInstance.address, mintedTokenId2)
+        await deployedLoanContractInstance.connect(client2).withdrawLoanAmount();
+        //Make loan expire without being paid
+        await provider.send("evm_increaseTime", [200])
+
+        await deployedLoanContractInstance.takeOwnership(mintedTokenId2);
+        
+        const nftOwner = await deployedContractNFTInstance.ownerOf(mintedTokenId2);
+        expect(nftOwner).to.be.equals(contractOwner.address)
+    })
 })
 
-const getEvent = (eventList, eventName) => {
-    let ev
-    eventList.forEach((item, _ix) => {
-        if (item.event === eventName) {
-            ev = item
-        }
+const sleep = (ms) => {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms)
     })
-    return ev
-}
-
-const eventContainsArgument = (event, arg, expValue, converter) => {
-    if (!event) {
-        console.log('Null event')
-        return false
-    }
-    try {
-        return converter(event.args[arg]) === expValue
-    } catch (error) {
-        console.log(`Failed to convert ${event.args[arg]}`)
-        return false
-    }
 }

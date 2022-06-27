@@ -134,7 +134,6 @@ contract LoanContract is Owneable, ERC721Receiver {
             loan.currentDebt -= msg.value;
         } else {
             loan.currentDebt = 0;
-            delete loanByAddress[msg.sender];
             loan.status = LoanStatus.Paid;
         }
         emit Payment(msg.sender, msg.value, loan.currentDebt);
