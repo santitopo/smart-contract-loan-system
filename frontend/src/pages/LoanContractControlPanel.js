@@ -1,12 +1,10 @@
 import * as React from 'react';
 import CustomAppBar from '../components/CustomAppBar';
-import Web3 from 'web3';
-import LoanContractAbi from '../abis/LoanContractAbi';
 import ContractControlPanel, {
   READ,
   WRITE
 } from '../components/ContractControlPanel';
-import { Button } from '@mui/material';
+import { useWallet } from '../providers/WalletProvider';
 
 const loanContracttMethods = [
   { name: 'loanAmount', type: READ, params: [] },
@@ -68,11 +66,8 @@ const loanContracttMethods = [
   { name: 'withdraw', type: WRITE, params: [{ name: '_amount', value: '' }] }
 ];
 
-const web3 = new Web3(Web3.givenProvider);
-const contractAddr = '0xeC2d8a12aA8A1b20651D828fF635D507e6Eb73c3';
-const loanContract = new web3.eth.Contract(LoanContractAbi, contractAddr);
-
 export default function LoanContractControlPanel({ setIsOpened }) {
+  const { loanContract } = useWallet();
   return (
     <>
       <CustomAppBar

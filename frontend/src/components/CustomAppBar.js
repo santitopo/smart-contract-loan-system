@@ -4,10 +4,16 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import MenuIcon from '@mui/icons-material/Menu';
 
-import { IconButton, Typography } from '@mui/material';
-import { Box } from '@mui/system';
+import { Button, IconButton, Typography } from '@mui/material';
+import { useWallet } from '../providers/WalletProvider';
+
+const adaptAddress = address => {
+  return `${address.substring(0, 5)}…${address.substring(address.length - 4)}`;
+};
 
 const CustomAppBar = ({ title, setIsOpened }) => {
+  const { connectMetamask, userAddress } = useWallet();
+
   return (
     <AppBar position="absolute" open={true}>
       <Toolbar
@@ -29,6 +35,15 @@ const CustomAppBar = ({ title, setIsOpened }) => {
         <Typography component="h1" variant="h6" noWrap sx={{ flexGrow: 1 }}>
           {title}
         </Typography>
+        <Button
+          style={{ backgroundColor: 'white' }}
+          disabled={userAddress}
+          onClick={connectMetamask}
+        >
+          {userAddress
+            ? `Connected with: ${adaptAddress(userAddress)}`
+            : 'Connect to Metamask'}
+        </Button>
       </Toolbar>
     </AppBar>
   );
