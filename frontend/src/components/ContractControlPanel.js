@@ -37,6 +37,10 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
     dispatch({ type: 'setReturned', payload: { methodIndex, returned } });
 
   const readFromContract = async (method, params, methodIndex) => {
+    if (!contract) {
+      setReturned(methodIndex, 'No metamask connected');
+      return;
+    }
     try {
       const rsp = await contract.methods[method](
         ...params.map(param => param.value)
@@ -50,6 +54,10 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
   };
 
   const sendToContract = async (method, params, methodIndex) => {
+    if (!contract) {
+      setReturned(methodIndex, 'No metamask connected');
+      return;
+    }
     const accounts = await window.ethereum.enable();
     const account = accounts[0];
     try {

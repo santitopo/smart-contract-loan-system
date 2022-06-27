@@ -1,13 +1,10 @@
 import * as React from 'react';
 import CustomAppBar from '../components/CustomAppBar';
-
-import Web3 from 'web3';
-
-import NFTContractAbi from '../abis/NFTContractAbi';
 import ContractControlPanel, {
   READ,
   WRITE
 } from '../components/ContractControlPanel';
+import { useWallet } from '../providers/WalletProvider';
 
 const nftContracttMethods = [
   { name: 'name', type: READ, params: [] },
@@ -44,11 +41,8 @@ const nftContracttMethods = [
   { name: 'withdraw', type: WRITE, params: [{ name: 'amount', value: 0 }] }
 ];
 
-const web3 = new Web3(Web3.givenProvider);
-const contractAddr = '0x8Acc8e8C1859fD7884cc2269760Ec19211372074';
-const nftContract = new web3.eth.Contract(NFTContractAbi, contractAddr);
-
 export default function NFTContractControlPanel({ setIsOpened }) {
+  const { nftContract } = useWallet();
   return (
     <>
       <CustomAppBar

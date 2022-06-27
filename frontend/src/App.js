@@ -7,6 +7,7 @@ import { createTheme, ThemeProvider, styled } from '@mui/material/styles';
 
 import './App.css';
 import Router from './routes';
+import WalletProvider from './providers/WalletProvider';
 
 const themeLight = createTheme({
   palette: {
@@ -19,12 +20,14 @@ const themeLight = createTheme({
 function App() {
   return (
     <HelmetProvider>
-      <BrowserRouter>
-        <ThemeProvider theme={themeLight}>
-          <CssBaseline />
-          <Router />
-        </ThemeProvider>
-      </BrowserRouter>
+      <WalletProvider>
+        <BrowserRouter>
+          <ThemeProvider theme={themeLight}>
+            <CssBaseline />
+            <Router />
+          </ThemeProvider>
+        </BrowserRouter>
+      </WalletProvider>
     </HelmetProvider>
   );
 }
