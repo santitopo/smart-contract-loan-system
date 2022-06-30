@@ -12,7 +12,7 @@ const adaptAddress = address => {
 };
 
 const CustomAppBar = ({ title, setIsOpened }) => {
-  const { connectMetamask, userAddress } = useWallet();
+  const { connectWallet, disconnectWallet, userAddress } = useWallet();
 
   return (
     <AppBar position="absolute" open={true}>
@@ -38,12 +38,21 @@ const CustomAppBar = ({ title, setIsOpened }) => {
         <Button
           style={{ backgroundColor: 'white' }}
           disabled={userAddress}
-          onClick={connectMetamask}
+          onClick={connectWallet}
         >
           {userAddress
             ? `Connected with: ${adaptAddress(userAddress)}`
             : 'Connect to Metamask'}
         </Button>
+
+        {userAddress && (
+          <Button
+            style={{ marginLeft: 10, backgroundColor: 'white' }}
+            onClick={disconnectWallet}
+          >
+            {'Disconnect'}
+          </Button>
+        )}
       </Toolbar>
     </AppBar>
   );

@@ -11,6 +11,7 @@ async function connect(setUserAddress) {
     return;
   }
 
+  //Connection request
   const accounts = await window.ethereum.request({
     method: 'eth_requestAccounts'
   });
@@ -28,6 +29,7 @@ async function checkIfWalletIsConnected(setUserAddress) {
   });
 
   if (accounts.length > 0) {
+    //The connected account is the first one in this array.
     const account = accounts[0];
     setUserAddress(account);
     return;
@@ -48,17 +50,28 @@ export default ({ children }) => {
 
   useEffect(() => {
     if (!userAddress) {
+      setNFTContract(null);
+      setLoanContract(null);
       return;
     }
     const web3 = new Web3(Web3.givenProvider);
-    setNFTContract(new web3.eth.Contract(NFTContractAbi, nftContractAddr));
-    setLoanContract(new web3.eth.Contract(LoanContractAbi, loanContractAddr));
+    setNFTContract(
+      new web3.eth.Contract(NFTContractAbi, nftContractAddr, {
+        from: userAddress
+      })
+    );
+    setLoanContract(
+      new web3.eth.Contract(LoanContractAbi, loanContractAddr, {
+        from: userAddress
+      })
+    );
   }, [userAddress]);
 
   return (
     <WalletContext.Provider
       value={{
-        connectMetamask: () => connect(setUserAddress),
+        connectWallet: () => connect(setUserAddress),
+        disconnectWallet: () => setUserAddress(null),
         userAddress,
         nftContract,
         loanContract
