@@ -23,7 +23,7 @@ describe(contractName || " Contract test", () => {
         const contractPath          = "contracts/" + contractName + ".sol:" + contractName
         const contractFactory       = await ethers.getContractFactory(contractPath, signer)
         deployedContractInstance    = await contractFactory.deploy('ORT NFT', 'ORT', 100)
-
+        deployedContractInstance2    = await contractFactory.deploy('ORT NFT 2', 'ORT 2', 1)   
     })
 
     it("Check Owner account", async() => {
@@ -69,4 +69,18 @@ describe(contractName || " Contract test", () => {
         }
         expect(failed).to.be.true
     })
+
+    it("Check cannot mint more than total supply", async () => {
+        let failed = false;
+        try {
+          await deployedContractInstance2.safeMint('Name2', 'Desc2', 'image_uri2');
+        } catch (error) {
+          if (error.message.includes("Cannot mint any more NFTs - Max supply reached")) {
+            failed = true;
+          } else {
+            console.log(error.message);
+          }
+        }
+        expect(failed).to.be.true;
+      });
 })
