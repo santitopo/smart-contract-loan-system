@@ -2,6 +2,7 @@ import React from 'react';
 import Button from '@mui/material/Button';
 import CustomAppBar from '../components/CustomAppBar';
 import { Container, Grid, TextField, Typography } from '@mui/material';
+import { web3Instance } from '../providers/WalletProvider';
 
 export const READ = 'read';
 export const WRITE = 'write';
@@ -22,19 +23,29 @@ function reducer(state, action) {
       newState[action.payload.methodIndex].returned = action.payload.returned;
       return newState;
     }
+    case 'setWei': {
+      const newState = { ...state };
+      newState[action.payload.methodIndex].wei = action.payload.wei;
+      return newState;
+    }
     default:
       return state;
   }
 }
 
 const isReadMethod = method => method.type === READ;
-const ContractControlPanel = ({ contract, contracttMethods }) => {
+const ContractControlPanel = ({ contract, contractAddr, contracttMethods }) => {
   const [state, dispatch] = React.useReducer(reducer, contracttMethods);
+  const [transferAmount, setTransferAmount] = React.useState(0);
   const setValue = (methodIndex, paramIndex, value) =>
     dispatch({ type: 'setValue', payload: { methodIndex, paramIndex, value } });
 
   const setReturned = (methodIndex, returned) =>
     dispatch({ type: 'setReturned', payload: { methodIndex, returned } });
+
+  const setWei = (methodIndex, wei) => {
+    dispatch({ type: 'setWei', payload: { methodIndex, wei } });
+  };
 
   const readFromContract = async (method, params, methodIndex) => {
     if (!contract) {
@@ -53,7 +64,7 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
     }
   };
 
-  const sendToContract = async (method, params, methodIndex) => {
+  const sendToContract = async (method, params, methodIndex, wei) => {
     if (!contract) {
       setReturned(methodIndex, 'No metamask connected');
       return;
@@ -63,17 +74,45 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
     try {
       const gas = await contract.methods[method](
         ...params.map(param => param.value)
-      ).estimateGas();
+      ).estimateGas({
+        value: wei
+      });
+
       const rsp = await contract.methods[method](
         ...params.map(param => param.value)
       ).send({
         from: account,
-        gas
+        gas,
+        value: wei
       });
       console.log({ rsp });
     } catch (err) {
       err.message && setReturned(methodIndex, err.message);
       console.log(`Error! ${err}`);
+    }
+  };
+
+  const transfer = async () => {
+    const accounts = await window.ethereum.enable();
+    const account = accounts[0];
+    let gas;
+    try {
+      console.log('will transfer to', contractAddr);
+      gas = await web3Instance.eth.estimateGas({
+        to: contractAddr,
+        value: transferAmount
+        // data: '0x72656365697665'
+      });
+      console.log('the gas is', gas);
+      web3Instance.eth.sendTransaction({
+        from: account,
+        to: contractAddr,
+        value: transferAmount,
+        //data: '0x72656365697665',
+        gas
+      });
+    } catch (e) {
+      console.log(e);
     }
   };
 
@@ -84,7 +123,7 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
           <Grid key={method.name} item container xs={12}>
             <Grid item xs={2}>
               <Button
-                onClick={() =>
+                onClick={() => {
                   isReadMethod(method)
                     ? readFromContract(
                         method.name,
@@ -94,9 +133,10 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
                     : sendToContract(
                         method.name,
                         state[methodIndex].params,
-                        methodIndex
-                      )
-                }
+                        methodIndex,
+                        state[methodIndex].wei || 0
+                      );
+                }}
                 style={{ backgroundColor: 'white' }}
               >
                 {method.name}
@@ -117,6 +157,21 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
                 />
               </Grid>
             ))}
+            {method.showWei && (
+              <Grid key={`${method.name}-wei`} item xs={2}>
+                <TextField
+                  label={'wei'}
+                  variant="filled"
+                  color="primary"
+                  focused
+                  sx={{ input: { color: 'white' } }}
+                  value={state[methodIndex].wei}
+                  onChange={event => {
+                    setWei(methodIndex, event.target.value);
+                  }}
+                />
+              </Grid>
+            )}
             <Grid item xs={4}>
               {state[methodIndex].returned && (
                 <Typography
@@ -126,6 +181,31 @@ const ContractControlPanel = ({ contract, contracttMethods }) => {
             </Grid>
           </Grid>
         ))}
+        <Grid item container xs={12}>
+          <Grid item xs={2}>
+            <Button
+              onClick={() => {
+                transfer();
+              }}
+              style={{ backgroundColor: 'white' }}
+            >
+              {'Donate'}
+            </Button>
+          </Grid>
+          <Grid item xs={2}>
+            <TextField
+              label={'Amount'}
+              variant="filled"
+              color="primary"
+              focused
+              sx={{ input: { color: 'white' } }}
+              value={transferAmount}
+              onChange={event => {
+                setTransferAmount(event.target.value);
+              }}
+            />
+          </Grid>
+        </Grid>
       </Grid>
     </>
   );
