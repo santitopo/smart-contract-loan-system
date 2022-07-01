@@ -58,4 +58,15 @@ describe(contractName || " Contract test", () => {
         }
         expect(failed).to.be.true
     })
+
+    it("Withdraw without enough funds", async() => {
+        let failed = false
+        let BIG_INT = 5000000000000000000000000000000000n;
+        try {
+            await deployedContractInstance.withdraw(BIG_INT);
+        } catch (error) {
+            if (error.message.includes("Contract hasn't got enough funds")) failed = true
+        }
+        expect(failed).to.be.true
+    })
 })
