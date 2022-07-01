@@ -25,9 +25,7 @@ const screensList = [
     name: 'Loan Contract',
     screen: '/loancontract',
     Icon: AccountBalanceWalletIcon
-  },
-  { name: 'NFT Data', screen: '/nft_data', Icon: InfoIcon },
-  { name: 'NFT Owner', screen: '/nft_owner', Icon: AccountCircleIcon }
+  }
 ];
 
 const TemporaryDrawer = ({ isOpened, setIsOpened }) => {

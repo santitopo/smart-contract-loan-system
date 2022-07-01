@@ -7,7 +7,6 @@ import ContractControlPanel, {
 import { useWallet } from '../providers/WalletProvider';
 
 const loanContracttMethods = [
-  { name: 'loanAmount', type: READ, params: [] },
   { name: 'interestPercentage', type: READ, params: [] },
   { name: 'loans', type: READ, params: [{ name: '_loanId', value: '' }] },
   {
@@ -30,9 +29,14 @@ const loanContracttMethods = [
     name: 'setLoanAmount',
     type: WRITE,
     params: [
-      { name: '_tokenId', value: '' },
+      { name: '_loanId', value: '' },
       { name: '_loanAmount', value: '' }
     ]
+  },
+  {
+    name: 'getBalance',
+    type: READ,
+    params: []
   },
   { name: 'getLoanStatus', type: READ, params: [] },
   { name: 'withdrawLoanAmount', type: WRITE, params: [] },
@@ -42,7 +46,7 @@ const loanContracttMethods = [
     type: WRITE,
     params: [{ name: '_interestPercentage', value: '' }]
   },
-  { name: 'payment', type: WRITE, params: [] },
+  { name: 'payment', type: WRITE, params: [], wei: 0, showWei: true },
   { name: 'getDebt', type: READ, params: [] },
   {
     name: 'getLoanInformation',
@@ -53,11 +57,11 @@ const loanContracttMethods = [
     name: 'setDeadline',
     type: WRITE,
     params: [
-      { name: '_maxTime', value: '' },
-      { name: '_loanId', value: '' }
+      { name: '_loanId', value: '' },
+      { name: '_maxTime', value: '' }
     ]
   },
-  { name: 'getDeadline', type: WRITE, params: [] },
+  { name: 'getDeadline', type: READ, params: [] },
   {
     name: 'takeOwnership',
     type: WRITE,
@@ -67,7 +71,7 @@ const loanContracttMethods = [
 ];
 
 export default function LoanContractControlPanel({ setIsOpened }) {
-  const { loanContract } = useWallet();
+  const { loanContract, loanContractAddr } = useWallet();
   return (
     <>
       <CustomAppBar
@@ -77,6 +81,7 @@ export default function LoanContractControlPanel({ setIsOpened }) {
 
       <ContractControlPanel
         contract={loanContract}
+        contractAddr={loanContractAddr}
         contracttMethods={loanContracttMethods}
       />
     </>

@@ -37,7 +37,7 @@ const CustomAppBar = ({ title, setIsOpened }) => {
         </Typography>
         <Button
           style={{ backgroundColor: 'white' }}
-          disabled={userAddress}
+          disabled={!!userAddress}
           onClick={connectWallet}
         >
           {userAddress
