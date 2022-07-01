@@ -59,6 +59,20 @@ describe(contractName || " Contract test", () => {
         expect(failed).to.be.true
     })
 
+    it("Check get token URI of existant token", async() => {
+        var uri = await deployedContractInstance.tokenURI(1);
+
+        expect(uri).to.be.equals('image_uri');
+    })
+
+    it("Check get metadata", async() => {
+        var result = await deployedContractInstance.getMetadata(1);
+
+        expect(result[0]).to.be.equals('Name');
+        expect(result[1]).to.be.equals('Desc');
+        expect(result[2]).to.be.equals('image_uri');
+    })
+
     it("Withdraw without enough funds", async() => {
         let failed = false
         let BIG_INT = 5000000000000000000000000000000000n;
