@@ -6,12 +6,13 @@ import "./ERC721Receiver.sol";
 
 contract LoanContract is Owneable, ERC721Receiver {
     uint256 public loanCounter = 0;
-    uint256 public loanAmount;
     address private _nftContractAddress;
     uint8 public interestPercentage;
     mapping (uint256 => Loan) public loans;
-    mapping (uint256 => uint256) public loanByToken; // Puntero al útlimo loan de un token. Cuando se complete el Loan (y se devuelve el token), se debería borrar de acá.
-    mapping (address => uint256) public loanByAddress; // Punteros al último loan de cada address. Cuando se complete el Loan (y se devuelva el token), se debería borrar de acá.
+    // Puntero al útlimo loan de un token. Cuando se complete el Loan (y se devuelve el token), se debería borrar de acá.
+    mapping (uint256 => uint256) public loanByToken; 
+    // Punteros al último loan de cada address. Cuando se complete el Loan (y se devuelva el token), se debería borrar de acá.
+    mapping (address => uint256) public loanByAddress; 
 
     struct Loan {
         uint256 tokenId;
@@ -22,7 +23,7 @@ contract LoanContract is Owneable, ERC721Receiver {
         LoanStatus status;
     }
 
-    enum LoanStatus { Pending, Approved, Rejected, Paid }
+    enum LoanStatus { Pending, Approved, Paid }
 
     event Withdraw(address indexed _addr, uint256 _amount);
     event Received(address indexed _addr, uint256 _amount);
@@ -91,12 +92,15 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(activeLoan.status == LoanStatus.Pending, "The Loan is not pending");
         require(activeLoan.loanAmount > 0, "The amount is not set");
         require(activeLoan.dueDate > 0, "The dueDate is not set");
+        require(address(this).balance >= activeLoan.loanAmount, "Not enough balance in contract");
 
         bytes memory methodToCall = abi.encodeWithSignature("ownerOf(uint256)", activeLoan.tokenId);
         (bool _success, bytes memory _returnData) = _nftContractAddress.call(methodToCall);
         require(_success, "Cannot retrieve owner from NFTContract");
         address ownerAddress = abi.decode(_returnData, (address));
         require(ownerAddress == address(this), "Token was not transferred to LoanContract");
+
+        
 
         // Effects
         loans[loanId].status = LoanStatus.Approved;
@@ -127,7 +131,8 @@ contract LoanContract is Owneable, ERC721Receiver {
         require(loanId != 0, "No active loan for sender");
 
         Loan storage loan = loans[loanId];
-        require(loan.dueDate > block.timestamp && loan.status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
+        require(loan.status == LoanStatus.Approved, "Loan: sender doesn't have an ongoing loan");
+        require(loan.dueDate > block.timestamp, "Loan: loan has expired");
 
         // Effects
         if (loan.currentDebt > msg.value) {

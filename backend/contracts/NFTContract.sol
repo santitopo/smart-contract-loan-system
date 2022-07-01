@@ -6,12 +6,12 @@ import "./IERC721.sol";
 import "./ERC721Receiver.sol";
 
 contract NFTContract is Owneable, IERC721, ERC721Receiver {
-    uint256 public identifier = 1;
+    //Next token's identifier
+    uint256 public identifier = 1; 
     string public name;
     string public symbol;
     uint256 public totalSupply;
     uint256 private _mintPrice;
-    // Se podrían usar signed int no? Aunque si tenemos que respetar las firmas afecta.
     mapping(address => uint256) public balanceOf;
     mapping(uint256 => NFTMetaData) private _nfts;
     mapping(uint256 => address) public ownerOf;
@@ -47,7 +47,6 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         require(_checkOnERC721Received(_to, _tokenId), "ERC721: transfer to non ERC721Receiver implementer");
     }
 
-    // En openzeppelin se invoca "estaticamente" con ERC721.ownerOf - Que diferencia hay?
     function _transfer(address _to, uint256 _tokenId) private {
         require(_to != address(0), "ERC721: cannot transfer to the zero address");
 
@@ -56,7 +55,6 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         ownerOf[_tokenId] = _to;
     }
 
-    // Payable y returns a la vez? Habíamos tenido problemas con la Calculadora porque al ser payable entra en la blockchain y no se espera que devuelva nada sino que use eventos.
     function safeMint(string calldata _name, string calldata _description, string calldata _imageURI) external payable returns(uint256) {
         require(msg.value >= _mintPrice, "You need to pay the appropriate amout of wei to mint");
         require(totalSupply > identifier, "Cannot mint any more NFTs - Max supply reached");
@@ -94,10 +92,6 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
         return (token.name, token.description, token.imageURI, token.mintDate);
     }
 
-    function getBalance() external view returns(uint256) {
-        return address(this).balance;
-    }
-
     // From openzeppelin implementation
     function _checkOnERC721Received(
         address _to,
@@ -126,6 +120,7 @@ contract NFTContract is Owneable, IERC721, ERC721Receiver {
     }
 
     function withdraw(uint256 _amount) external isContractOwner() {
+        require(address(this).balance >= _amount, "Contract hasn't got enough funds");
         payable(msg.sender).transfer(_amount);
     }
 }
