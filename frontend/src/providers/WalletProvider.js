@@ -35,8 +35,8 @@ async function checkIfWalletIsConnected(setUserAddress) {
   }
 }
 
-const nftContractAddr = '0x0acB1bd5dEA6D8BAE085a20fd852178fc917490b';
-const loanContractAddr = '0x5A106B8adEB043b81c56Dae6dDdCdffC4eF82d9D';
+const nftContractAddr = '0xe7712bc81cC2541f755574E9EaF29cfb1322f15B';
+const loanContractAddr = '0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6';
 export const web3Instance = new Web3(Web3.givenProvider);
 
 export default ({ children }) => {
