@@ -12,8 +12,9 @@ async function main(contractToDeploy) {
   //const provider = ethers.provider;
 
   // Get provider for testnet
-  const accessPoint_URL = process.env.GANACHE_ACCESSPOINT_URL;
-  const provider = new ethers.providers.JsonRpcProvider(accessPoint_URL);
+  //const accessPoint_URL = process.env.GANACHE_ACCESSPOINT_URL;
+  const rinkebyURL = process.env.RINKEBY_ACCESSPOINT_URL;
+  const provider = new ethers.providers.JsonRpcProvider(rinkebyURL);
 
   // Get signer
   const [signer] = await ethers.getSigners();
