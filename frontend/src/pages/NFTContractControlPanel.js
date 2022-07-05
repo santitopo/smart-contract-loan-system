@@ -13,6 +13,7 @@ const nftContracttMethods = [
   { name: 'balanceOf', type: READ, params: [{ name: 'address', value: '' }] },
   { name: 'ownerOf', type: READ, params: [{ name: '_tokenId', value: '' }] },
   { name: 'tokenURI', type: READ, params: [{ name: '_tokenId', value: '' }] },
+  { name: 'identifier', type: READ, params: [] },
   {
     name: 'safeMint',
     type: WRITE,
@@ -20,7 +21,9 @@ const nftContracttMethods = [
       { name: '_name', value: '' },
       { name: '_description', value: '' },
       { name: '_imageURI', value: '' }
-    ]
+    ],
+    showWei: true,
+    wei: 0
   },
   {
     name: 'safeTransfer',
@@ -42,7 +45,7 @@ const nftContracttMethods = [
 ];
 
 export default function NFTContractControlPanel({ setIsOpened }) {
-  const { nftContract } = useWallet();
+  const { nftContract, nftContractAddr } = useWallet();
   return (
     <>
       <CustomAppBar
@@ -52,6 +55,7 @@ export default function NFTContractControlPanel({ setIsOpened }) {
 
       <ContractControlPanel
         contract={nftContract}
+        contractAddr={nftContractAddr}
         contracttMethods={nftContracttMethods}
       />
     </>

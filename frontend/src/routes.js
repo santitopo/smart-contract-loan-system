@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Navigate, useRoutes } from 'react-router-dom';
 import ContainerWithDrawer from './layouts/ContainerWithDrawer';
 import NFTContractControlPanel from './pages/NFTContractControlPanel';
-import Metamask from './pages/Metamask';
 import NFTData from './pages/NFTData';
 import NFTOwner from './pages/NFTOwner';
 import LoanContractControlPanel from './pages/LoanContractControlPanel';
@@ -28,10 +27,6 @@ export default function Router(props) {
         {
           path: 'loanContract',
           element: <LoanContractControlPanel setIsOpened={setDrawerOpened} />
-        },
-        {
-          path: 'metamask',
-          element: <Metamask setIsOpened={setDrawerOpened} />
         },
         {
           path: 'nft_data',

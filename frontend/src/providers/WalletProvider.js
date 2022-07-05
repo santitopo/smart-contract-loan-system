@@ -11,6 +11,7 @@ async function connect(setUserAddress) {
     return;
   }
 
+  //Connection request
   const accounts = await window.ethereum.request({
     method: 'eth_requestAccounts'
   });
@@ -28,39 +29,60 @@ async function checkIfWalletIsConnected(setUserAddress) {
   });
 
   if (accounts.length > 0) {
-    const account = accounts[0];
-    setUserAddress(account);
+    //The connected account is the first one in this array.
+    setUserAddress(accounts[0]);
     return;
   }
 }
 
-const nftContractAddr = '0x8Acc8e8C1859fD7884cc2269760Ec19211372074';
-const loanContractAddr = '0xeC2d8a12aA8A1b20651D828fF635D507e6Eb73c3';
+const nftContractAddr = '0xe7712bc81cC2541f755574E9EaF29cfb1322f15B';
+const loanContractAddr = '0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6';
+export const web3Instance = new Web3(Web3.givenProvider);
 
 export default ({ children }) => {
   const [userAddress, setUserAddress] = useState(null);
   const [nftContract, setNFTContract] = useState(null);
   const [loanContract, setLoanContract] = useState(null);
 
+  const handleAccountChanged = () => checkIfWalletIsConnected(setUserAddress);
+
   useEffect(() => {
-    checkIfWalletIsConnected(setUserAddress);
+    handleAccountChanged();
+    ethereum.on('accountsChanged', handleAccountChanged);
+
+    return () => {
+      ethereum.removeListener('accountsChanged', handleAccountChanged);
+    };
   }, []);
 
   useEffect(() => {
     if (!userAddress) {
+      setNFTContract(null);
+      setLoanContract(null);
       return;
     }
-    const web3 = new Web3(Web3.givenProvider);
-    setNFTContract(new web3.eth.Contract(NFTContractAbi, nftContractAddr));
-    setLoanContract(new web3.eth.Contract(LoanContractAbi, loanContractAddr));
+
+    setNFTContract(
+      new web3Instance.eth.Contract(NFTContractAbi, nftContractAddr, {
+        from: userAddress
+      })
+    );
+    setLoanContract(
+      new web3Instance.eth.Contract(LoanContractAbi, loanContractAddr, {
+        from: userAddress
+      })
+    );
   }, [userAddress]);
 
   return (
     <WalletContext.Provider
       value={{
-        connectMetamask: () => connect(setUserAddress),
+        connectWallet: () => connect(setUserAddress),
+        disconnectWallet: () => setUserAddress(null),
         userAddress,
+        loanContractAddr,
         nftContract,
+        nftContractAddr,
         loanContract
       }}
     >

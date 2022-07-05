@@ -47,7 +47,32 @@ Por último, para correr los tests es necesario estar en la ruta de la carpeta q
 
 ## Address de contratos deployados en testnet
 
-You can delete the current file by clicking the **Remove** button in the file explorer. The file will be moved into the **Trash** folder and automatically deleted after 7 days of inactivity.
+---
+
+## -- Deployed contract: NFTContract
+
+-- Contract address: 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B
+-- Contract Balance: 0
+
+---
+
+## -- Signer address: 0x6b950Bc42743ee97734d1feda101a2FC41542B37
+
+## -- Deploy successfully
+
+---
+
+## -- Deployed contract: LoanContract
+
+-- Contract address: 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6
+-- Contract Balance: 0
+
+---
+
+## -- Signer address: 0x6b950Bc42743ee97734d1feda101a2FC41542B37
+
+## -- Deploy successfully
+
 
 ## Integrantes del equipo
 
