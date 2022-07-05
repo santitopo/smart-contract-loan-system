@@ -25,7 +25,21 @@ También, es necesario **definir** nuestras variables de entorno declaradas en e
 
 ## Pasos para hacer el deploy
 
-// ToDo
+Para realizar el deploy añadimos dentro de el archivo **hardhat.config.js** la red rinkeby para poder deployar nuestros contratos digitales. Añadimos la url de nuestro proveedor de Infura para poder deployar a la red rinkeby. También incluimos la clave privada de nuestro account de metamask y su respectiva address. Dichas variables de entorno fueron guardadas en un archivo .env.
+
+<img src="./assets/rinkeby.png"/>
+
+En el archivo **deploy.js** se asigna los contratos a deployar y se crea el objeto signer donde se almacenarán las address y el provider por el cual se instancie.
+
+Mediante el comando **npx hardhat run scripts/deploy.js --network rinkeby**, comenzamos con el deploy utilizando la network de rinkeby con la configuración previamente establecida.
+
+**Contrato "NFTContract"**
+
+<img src="./assets/NFTContract-rinkeby.png"/>
+
+**Contrato "LoanContract"**
+
+<img src="./assets/LoanContract-rinkeby.png"/>
 
 ## Pasos para la ejecución de tests
 
@@ -47,31 +61,11 @@ Por último, para correr los tests es necesario estar en la ruta de la carpeta q
 
 ## Address de contratos deployados en testnet
 
----
+| Contract Name | Contract Address| Contract Balance | Signer Address
+|--|--|--|--|
+| NFTContract | 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B| 0 |0x6b950Bc42743ee97734d1feda101a2FC41542B37
+| LoanContract | 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6| 0 |0x6b950Bc42743ee97734d1feda101a2FC41542B37
 
-## -- Deployed contract: NFTContract
-
--- Contract address: 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B
--- Contract Balance: 0
-
----
-
-## -- Signer address: 0x6b950Bc42743ee97734d1feda101a2FC41542B37
-
-## -- Deploy successfully
-
----
-
-## -- Deployed contract: LoanContract
-
--- Contract address: 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6
--- Contract Balance: 0
-
----
-
-## -- Signer address: 0x6b950Bc42743ee97734d1feda101a2FC41542B37
-
-## -- Deploy successfully
 
 
 ## Integrantes del equipo
