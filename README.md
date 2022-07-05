@@ -33,6 +33,8 @@ En el archivo **deploy.js** se asigna los contratos a deployar y se crea el obje
 
 Mediante el comando **npx hardhat run scripts/deploy.js --network rinkeby**, comenzamos con el deploy utilizando la network de rinkeby con la configuración previamente establecida.
 
+Al ingresar el address del contrato en Etherscan logramos visualizar nuestros contratos
+
 **Contrato "NFTContract"**
 
 <img src="./assets/NFTContract-rinkeby.png"/>
