@@ -23,7 +23,7 @@ describe(contractName || " Contract test", () => {
         const contractPath          = "contracts/" + contractName + ".sol:" + contractName
         const contractFactory       = await ethers.getContractFactory(contractPath, signer)
         deployedContractInstance    = await contractFactory.deploy('ORT NFT', 'ORT', 100)
-
+        deployedContractInstance2    = await contractFactory.deploy('ORT NFT 2', 'ORT 2', 1)   
     })
 
     it("Check Owner account", async() => {
@@ -58,4 +58,43 @@ describe(contractName || " Contract test", () => {
         }
         expect(failed).to.be.true
     })
+
+    it("Check get token URI of existant token", async() => {
+        var uri = await deployedContractInstance.tokenURI(1);
+
+        expect(uri).to.be.equals('image_uri');
+    })
+
+    it("Check get metadata", async() => {
+        var result = await deployedContractInstance.getMetadata(1);
+
+        expect(result[0]).to.be.equals('Name');
+        expect(result[1]).to.be.equals('Desc');
+        expect(result[2]).to.be.equals('image_uri');
+    })
+
+    it("Withdraw without enough funds", async() => {
+        let failed = false
+        let BIG_INT = 5000000000000000000000000000000000n;
+        try {
+            await deployedContractInstance.withdraw(BIG_INT);
+        } catch (error) {
+            if (error.message.includes("Contract hasn't got enough funds")) failed = true
+        }
+        expect(failed).to.be.true
+    })
+
+    it("Check cannot mint more than total supply", async () => {
+        let failed = false;
+        try {
+          await deployedContractInstance2.safeMint('Name2', 'Desc2', 'image_uri2');
+        } catch (error) {
+          if (error.message.includes("Cannot mint any more NFTs - Max supply reached")) {
+            failed = true;
+          } else {
+            console.log(error.message);
+          }
+        }
+        expect(failed).to.be.true;
+      });
 })
