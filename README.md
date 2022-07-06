@@ -21,11 +21,11 @@ Luego, es necesario contar con un IDE o un editor de código fuente como el Visu
 
 <img src="./assets/solidity.png"/>
 
-También, es necesario **definir** nuestras variables de entorno declaradas en el archivo **.env** para poder interactuar con nuestros contratos, definiendo nuestra instancia de Ganache que nos permite definir nuestra blockchain privada para correr nuestros tests de prueba.
+También, es necesario **definir** nuestras variables de entorno declaradas en un archivo **.env** (ver archivo de ejemplo **.env.local**) para poder interactuar con nuestros contratos, definiendo nuestra instancia de Ganache que nos permite definir nuestra blockchain privada para correr nuestros tests de prueba.
 
 ## Pasos para hacer el deploy
 
-Para realizar el deploy añadimos dentro de el archivo **hardhat.config.js** la red rinkeby para poder deployar nuestros contratos digitales. Añadimos la url de nuestro proveedor de Infura para poder deployar a la red rinkeby. También incluimos la clave privada de nuestro account de metamask y su respectiva address. Dichas variables de entorno fueron guardadas en un archivo .env.
+Para realizar el deploy añadimos dentro de el archivo **hardhat.config.js** la red rinkeby para poder deployar nuestros contratos digitales. Añadimos la url de nuestro proveedor de Infura para poder deployar a la red rinkeby. También incluimos la clave privada de nuestra account de rinkeby (vinculada a nuestro Metamask) y su respectiva address. Dichas variables de entorno fueron guardadas en el archivo .env.
 
 <img src="./assets/rinkeby.png"/>
 
