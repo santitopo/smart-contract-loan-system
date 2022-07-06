@@ -48,10 +48,12 @@ export default ({ children }) => {
 
   useEffect(() => {
     handleAccountChanged();
-    ethereum.on('accountsChanged', handleAccountChanged);
+    window.ethereum &&
+      window.ethereum.on('accountsChanged', handleAccountChanged);
 
     return () => {
-      ethereum.removeListener('accountsChanged', handleAccountChanged);
+      window.ethereum &&
+        window.ethereum.removeListener('accountsChanged', handleAccountChanged);
     };
   }, []);
 
