@@ -15,9 +15,9 @@ En el Contrato NFTContract implementamos el standard ERC-721 y en el LoanContrac
 
 ## Pasos para hacer el setup del repositorio
 
-Para hacer el setup del repositorio es necesario **clonar** el mismo desde la página de GitHub que es la herramienta utilizada para versionar nuestro desarrollo, o de lo contrario se podría **descargar** un ZIP sin necesidad de tener Git instalado. 
+Para hacer el setup del repositorio es necesario **clonar** el mismo desde la página de GitHub que es la herramienta utilizada para versionar nuestro desarrollo, o de lo contrario se podría **descargar** un ZIP sin necesidad de tener Git instalado.
 
-Luego, es necesario contar con un IDE o un editor de código fuente como el Visual Studio Code e **instalarle la extensión** para que reconozca nuestro código en Solidity
+Luego, es necesario contar con un IDE o un editor de código fuente como el Visual Studio Code e **instalarle la extensión** para que reconozca nuestro código en Solidity.
 
 <img src="./assets/solidity.png"/>
 
@@ -61,6 +61,33 @@ Para probar el contrato inteligente NFTContract definimos un archivo llamado **N
 
 Por último, para correr los tests es necesario estar en la ruta de la carpeta que contiene los archivos **.test.js** llamada tests y correr el comando por consola **npx hardhat test**
 
+## Pasos para la ejecución del FrontEnd
+
+Para la ejecución del FrontEnd, dirigirse hasta la ruta del mismo y ejecutar el comando **npm install** para realizar la instalación de las dependencias y una vez completo, realizar el comando **npm start** con el cual se iniciará la aplicación.
+
+El mismo fue desarrollado con React Native. Al igual que la página Remix (IDE para desarrollar, deployar y administrar contratos inteligentes en Ethereum) la idea fue que en nuestro FrontEnd se pueda interactuar con la totalidad de las funcionalidades del mismo, pudiendo ver mensajes de respuesta y asi poder realizar el flujo completo. Así mismo, cumplimos con los requerimientos de poder conectar con la wallet de MetaMask para firmar las transacciones, obtener todos los datos de un NFT minteado y obtener el propietario del mismo.
+
+**Conexión con MetaMask**
+
+<img src="./assets/metamask.jpeg"/>
+
+**Interfaz NFTContract**
+
+<img src="./assets/nft-contract-front.jpeg"/>
+
+**Interfaz LoanContract**
+
+<img src="./assets/loan-contract-front.jpeg"/>
+
+
+## Flujo de aprobación de Préstamos
+
+Para realizar el flujo de pedir un préstamo para posteriormente ser aprobado y que el dueño del contrato pueda recibirlo, se planteó una suerte de diagrama de secuencia donde se comentan los principales métodos a invocar con sus respectivos atributos.
+
+<img src="./assets/secuence.jpeg"/>
+
+Se puede visualizar como se transfiere el NFT para que el nuevo owner sea el contrato "LoanContract" y una vez hecho eso poder llamar al método "WithdrawLoanAmount" para retirar el dinero.
+
 ## Address de contratos deployados en testnet
 
 | Contract Name | Contract Address| Contract Balance | Signer Address
@@ -72,7 +99,7 @@ Por último, para correr los tests es necesario estar en la ruta de la carpeta q
 
 ## Integrantes del equipo
 
-| Nombre | Nro. de estudiante | Address 
+| Nombre | Nro. de estudiante | Address
 |--|--|--|
 | Germán Castro | 187553 | 0x61214c38530E969a39F3d44e3c36878Af74F8321
 | Juan Andrés Nervi | 223393 | 0x272C2DF626197E61C35Db9c78346ddb082e209CE
