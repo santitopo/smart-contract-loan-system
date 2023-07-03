@@ -68,7 +68,7 @@ The Frontend was developed with React. Similar to the Remix page (an IDE for dev
 
 Connecting with MetaMask
 
-<img  src="./assets/metamask.jpeg"/>
+<img  src="./assets/metamask.jpeg" width="300"/>
 
 NFTContract Interface
 
