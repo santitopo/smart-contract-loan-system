@@ -1,107 +1,111 @@
-# Programación de Contratos Inteligentes en Blockchain.
+# Smart Contract Programming on Blockchain.
 
-## Descripción del proyecto
+## Project Description
 
-El proyecto se enmarca en la creación de un contrato inteligente que permita a los usuarios mintear sus propios NFT o tokens no fungibles. De la misma manera, el protocólo debe poder permitir utilizar el NFT minteado como garantía para obtener un préstamos en ethers.
+The project aims to create a smart contract that allows users to mint their own NFTs (Non-Fungible Tokens). Additionally, the protocol should enable the use of the minted NFTs as collateral to obtain loans in ethers.
 
-## Componentes del proyecto
+## Project Components
 
-El repositorio se encuentra dividido entre dos grandes carpetas, una es el Frontend donde podemos encontrar toda la lógica referida al diseño de la interfaz gráfica que se comunica con nuestra otra gran división llamada Backend, donde encontramos nuestra lógica de negocio, más precisamente, los contratos inteligentes "NFTContract" y "LoanContract", conjuntamente con sus tests unitarios.
+The repository is divided into two main folders. The first one is the Frontend, containing all the logic related to the graphical user interface that communicates with the other major division called Backend. In the Backend, we find our business logic, specifically the smart contracts "NFTContract" and "LoanContract," along with their unit tests.
 
-<img src="./assets/UML.jpg"/>
+<img  src="./assets/UML.jpg"/>
 
-En el Contrato NFTContract implementamos el standard ERC-721 y en el LoanContract podremos encontrar la lógica para dar prestamos a las addresses usando como garantía los NFTs.
+In the NFTContract, we implement the ERC-721 standard for NFTs, and in the LoanContract, we have the logic for providing loans to addresses using NFTs as collateral.
 
+## Steps to Set Up the Repository
 
-## Pasos para hacer el setup del repositorio
+To set up the repository, you need to clone it from GitHub, the version control tool used for our development. Alternatively, you can download a ZIP file without having Git installed.
 
-Para hacer el setup del repositorio es necesario **clonar** el mismo desde la página de GitHub que es la herramienta utilizada para versionar nuestro desarrollo, o de lo contrario se podría **descargar** un ZIP sin necesidad de tener Git instalado.
+Next, you need an IDE or a source code editor like Visual Studio Code and install the Solidity extension so that it can recognize our Solidity code.
 
-Luego, es necesario contar con un IDE o un editor de código fuente como el Visual Studio Code e **instalarle la extensión** para que reconozca nuestro código en Solidity.
+<img  src="./assets/solidity.png"/>
 
-<img src="./assets/solidity.png"/>
+You also need to define environment variables declared in a `.env` file (see the example file `.env.local`) to interact with our contracts. This includes defining a Ganache instance, which allows us to set up a private blockchain for running the test suite.
 
-También, es necesario **definir** nuestras variables de entorno declaradas en un archivo **.env** (ver archivo de ejemplo **.env.local**) para poder interactuar con nuestros contratos, definiendo nuestra instancia de Ganache que nos permite definir nuestra blockchain privada para correr nuestros tests de prueba.
+## Steps to Deploy
 
-## Pasos para hacer el deploy
+To deploy, we add the rinkeby network within the `hardhat.config.js` file to deploy our digital contracts. We include the Infura provider URL to deploy to the rinkeby network. Also, we include the private key of our Rinkeby account (linked to our Metamask) and its corresponding address. These environment variables are stored in the `.env` file.
 
-Para realizar el deploy añadimos dentro de el archivo **hardhat.config.js** la red rinkeby para poder deployar nuestros contratos digitales. Añadimos la url de nuestro proveedor de Infura para poder deployar a la red rinkeby. También incluimos la clave privada de nuestra account de rinkeby (vinculada a nuestro Metamask) y su respectiva address. Dichas variables de entorno fueron guardadas en el archivo .env.
+<img  src="./assets/rinkeby.png"/>
 
-<img src="./assets/rinkeby.png"/>
+In the deploy.js file, we assign the contracts to be deployed and create the signer object to store the addresses and the provider to be used for instantiation.
 
-En el archivo **deploy.js** se asigna los contratos a deployar y se crea el objeto signer donde se almacenarán las address y el provider por el cual se instancie.
+By running the command `npx hardhat run scripts/deploy.js --network rinkeby`, we start the deployment process using the rinkeby network with the previously established configuration.
 
-Mediante el comando **npx hardhat run scripts/deploy.js --network rinkeby**, comenzamos con el deploy utilizando la network de rinkeby con la configuración previamente establecida.
+After deploying, we can view our contracts on Etherscan:
 
-Al ingresar el address del contrato en Etherscan logramos visualizar nuestros contratos
+"NFTContract" Contract
 
-**Contrato "NFTContract"**
+<img  src="./assets/NFTContract-rinkeby.png"/>
 
-<img src="./assets/NFTContract-rinkeby.png"/>
+"LoanContract" Contract
 
-**Contrato "LoanContract"**
+<img  src="./assets/LoanContract-rinkeby.png"/>
 
-<img src="./assets/LoanContract-rinkeby.png"/>
+## Steps to Execute Tests
 
-## Pasos para la ejecución de tests
+The unit tests, unlike integration tests, are individual tests for components and methods without considering their dependencies.
 
-Las pruebas unitarias a diferencia de las pruebas de integración son pruebas individuales de componentes y métodos, sin contar las pruebas en sus dependencias como estas últimas si tienen en cuenta.
+The purpose of unit tests is to test our code in isolation, avoiding testing its dependencies, ensuring that errors are restricted only to the code we want to test.
 
-El sentido de las pruebas unitarias, es poder probar nuestro código evitando probar también sus dependencias, asegurándonos que los errores se restringen únicamente al código que efectivamente queremos probar.
+To perform these tests, we used the testing library called Chai and deployed it on the HardHat Network. With these tests, we verify most of the functionalities, paying special attention to the loan request and withdrawal process when approved.
 
-**Para realizar estas pruebas se utilizó una librería de testing llamada Chai y se deployó  sobre la red de HardHat Network.** Con ellas probamos la mayoría de las funcionalidades, prestando especial atención en el pedido de préstamos y el retiro del dinero en caso de ser aprobado el mismo.
+To test the LoanContract smart contract, we created a file called `LoanContract.test.js`, where we have the tests for that contract. Before running the tests, we run the before function, which is responsible for obtaining the contract instances and initializing different signers like the owner, client1, and client2 required for testing various modifiers and logic.
 
-Para Probar el contrato inteligente LoanContract definimos un archivo llamado **LoanContract.test.js** donde se encuentran los test realizados a dicho contrato. Antes de ejecutar los test se corre por única vez el before que es el encargado de obtener las instancias de los contratos y de inicializar los distintos signers como el owner, client1 y client2 requeridos para probar nuestros distintos modifiers y lógica.
+<img  src="./assets/before-tests.png"/>
 
-<img src="./assets/before-tests.png"/>
+As shown in the image, we then set the price for minting NFTs using the setPrice() method, set the interest for loans using the setInterest() method, and mint some tokens to proceed with the flow.
 
-Como se puede observar en la imagen, luego se setea el precio del minteo de los NFTs con el método setPrice(), los intereses para los préstamos con el método setIntereset()  y se mintea algún token para seguir con el flujo.
+To test the NFTContract smart contract, we defined a file called `NFTContract.test.js`. In its _before_ function, similar to the before in LoanContract.test.js, we obtain the contract instance.
 
-Para probar el contrato inteligente NFTContract definimos un archivo llamado **NFTContract.test.js** y en su before al igual que en el before del LoanContract.test.js obtenemos la instancia del contrato.
+Finally, to run the tests, navigate to the tests folder containing the `.test.js` files and run the command `npx hardhat test` in the console.
 
-Por último, para correr los tests es necesario estar en la ruta de la carpeta que contiene los archivos **.test.js** llamada tests y correr el comando por consola **npx hardhat test**
+## Steps to Execute the Frontend
 
-## Pasos para la ejecución del FrontEnd
+To run the Frontend, navigate to its directory and execute the command `npm install` to install the dependencies. Once completed, run the command `npm start` to start the application.
 
-Para la ejecución del FrontEnd, dirigirse hasta la ruta del mismo y ejecutar el comando **npm install** para realizar la instalación de las dependencias y una vez completo, realizar el comando **npm start** con el cual se iniciará la aplicación.
+The Frontend was developed with React. Similar to the Remix page (an IDE for developing, deploying, and managing smart contracts on Ethereum), the idea was to allow interaction with all the functionalities through our Frontend, displaying response messages and enabling the complete flow. Furthermore, we fulfilled the requirements of connecting with the MetaMask wallet to sign transactions, retrieve all data from a minted NFT, and get the owner of the NFT.
 
-El mismo fue desarrollado con React Native. Al igual que la página Remix (IDE para desarrollar, deployar y administrar contratos inteligentes en Ethereum) la idea fue que en nuestro FrontEnd se pueda interactuar con la totalidad de las funcionalidades del mismo, pudiendo ver mensajes de respuesta y asi poder realizar el flujo completo. Así mismo, cumplimos con los requerimientos de poder conectar con la wallet de MetaMask para firmar las transacciones, obtener todos los datos de un NFT minteado y obtener el propietario del mismo.
+Connecting with MetaMask
 
-**Conexión con MetaMask**
+<img  src="./assets/metamask.jpeg"/>
 
-<img src="./assets/metamask.jpeg"/>
+NFTContract Interface
 
-**Interfaz NFTContract**
+<img  src="./assets/nft-contract-front.jpeg"/>
 
-<img src="./assets/nft-contract-front.jpeg"/>
+LoanContract Interface
 
-**Interfaz LoanContract**
+<img  src="./assets/loan-contract-front.jpeg"/>
 
-<img src="./assets/loan-contract-front.jpeg"/>
+## Loan Approval Flow
 
+To illustrate the flow of requesting a loan, getting it approved, and allowing the contract owner to receive it, we created a sequence diagram that highlights the main methods to be invoked along with their respective attributes.
 
-## Flujo de aprobación de Préstamos
+<img  src="./assets/secuence.jpeg"/>
 
-Para realizar el flujo de pedir un préstamo para posteriormente ser aprobado y que el dueño del contrato pueda recibirlo, se planteó una suerte de diagrama de secuencia donde se comentan los principales métodos a invocar con sus respectivos atributos.
+The diagram shows how the NFT is transferred so that the new owner becomes the "LoanContract" and, once done, how the "WithdrawLoanAmount" method is called to withdraw the money.
 
-<img src="./assets/secuence.jpeg"/>
+## Deployed Contract Addresses on Testnet
 
-Se puede visualizar como se transfiere el NFT para que el nuevo owner sea el contrato "LoanContract" y una vez hecho eso poder llamar al método "WithdrawLoanAmount" para retirar el dinero.
+| Contract Name | Contract Address | Contract Balance | Signer Address
 
-## Address de contratos deployados en testnet
-
-| Contract Name | Contract Address| Contract Balance | Signer Address
 |--|--|--|--|
-| NFTContract | 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B| 0 |0x6b950Bc42743ee97734d1feda101a2FC41542B37
-| LoanContract | 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6| 0 |0x6b950Bc42743ee97734d1feda101a2FC41542B37
 
+| NFTContract | 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B | 0 | 0x6b950Bc42743ee97734d1feda101a2FC41542B37
 
+| LoanContract | 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6 | 0 | 0x6b950Bc42743ee97734d1feda101a2FC41542B37
 
-## Integrantes del equipo
+## Team Members
 
-| Nombre | Nro. de estudiante | Address
-|--|--|--|
-| Germán Castro | 187553 | 0x61214c38530E969a39F3d44e3c36878Af74F8321
-| Juan Andrés Nervi | 223393 | 0x272C2DF626197E61C35Db9c78346ddb082e209CE
-| Santiago Topolansky | 228360 | 0x6b950Bc42743ee97734d1feda101a2FC41542B37
-| Valentín Sanchez| 203458 | 0x1A4Fa105d6a434E67749CFDEd0c86F9d971e37C7
+| Nombre | Address |
+
+| ------------------- | ------- |
+
+| Germán | 0x61214c38530E969a39F3d44e3c36878Af74F8321 |
+
+| Juan Andrés | 0x272C2DF626197E61C35Db9c78346ddb082e209CE |
+
+| Santiago | 0x6b950Bc42743ee97734d1feda101a2FC41542B37 |
+
+| Valentín | 0x1A4Fa105d6a434E67749CFDEd0c86F9d971e37C7 |
