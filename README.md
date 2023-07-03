@@ -88,24 +88,16 @@ The diagram shows how the NFT is transferred so that the new owner becomes the "
 
 ## Deployed Contract Addresses on Testnet
 
-| Contract Name | Contract Address | Contract Balance | Signer Address
-
-|--|--|--|--|
-
-| NFTContract | 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B | 0 | 0x6b950Bc42743ee97734d1feda101a2FC41542B37
-
-| LoanContract | 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6 | 0 | 0x6b950Bc42743ee97734d1feda101a2FC41542B37
+| Contract Name | Contract Address                           | Contract Balance | Signer Address                             |
+| ------------- | ------------------------------------------ | ---------------- | ------------------------------------------ |
+| NFTContract   | 0xe7712bc81cC2541f755574E9EaF29cfb1322f15B | 0                | 0x6b950Bc42743ee97734d1feda101a2FC41542B37 |
+| LoanContract  | 0xcE9D02ED94423c58Cb81f7F3BCD9F0fCF80E1eE6 | 0                | 0x6b950Bc42743ee97734d1feda101a2FC41542B37 |
 
 ## Team Members
 
-| Nombre | Address |
-
-| ------------------- | ------- |
-
-| Germán | 0x61214c38530E969a39F3d44e3c36878Af74F8321 |
-
+| Nombre      | Address                                    |
+| ----------- | ------------------------------------------ |
+| Germán      | 0x61214c38530E969a39F3d44e3c36878Af74F8321 |
 | Juan Andrés | 0x272C2DF626197E61C35Db9c78346ddb082e209CE |
-
-| Santiago | 0x6b950Bc42743ee97734d1feda101a2FC41542B37 |
-
-| Valentín | 0x1A4Fa105d6a434E67749CFDEd0c86F9d971e37C7 |
+| Santiago    | 0x6b950Bc42743ee97734d1feda101a2FC41542B37 |
+| Valentín    | 0x1A4Fa105d6a434E67749CFDEd0c86F9d971e37C7 |
